@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "prebuild": "tsc -p ../../packages/shared/tsconfig.json",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest --runInBand"
   },
   "dependencies": {
+    "@farm-seva/shared": "*",
     "@prisma/client": "^5.10.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
