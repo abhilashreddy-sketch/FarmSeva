@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "../../",
+    "paths": {
+      "@farm-seva/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/__tests__/**/*", "**/*.test.ts", "**/*.spec.ts"]
 }
