@@ -1,0 +1,1019 @@
+// FARM SEVA Normalized Database Schema
+// Single Source of Truth for Multi-Channel Agricultural Marketplace
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ----------------------------------------------------
+// USER & ACCESS CONTROL
+// ----------------------------------------------------
+
+model User {
+  id                 String       @id @default(uuid())
+  phone              String       @unique
+  email              String?      @unique
+  passwordHash       String?
+  fullName           String
+  role               String       @default("FARMER")
+  status             String       @default("ACTIVE")
+  preferredLanguage  String       @default("en") // en, te, kn, hi, ta, mr
+  phoneVerified      Boolean      @default(true)
+  emailVerified      Boolean      @default(false)
+  profileCompleted   Boolean      @default(false)
+  kycStatus          String       @default("NOT_SUBMITTED") // NOT_SUBMITTED, PENDING, UNDER_REVIEW, VERIFIED, REJECTED, NEEDS_INFO
+  lastLoginAt        DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  farmerProfile      FarmerProfile?
+  sellerProfile      Seller?
+  expertProfile      Expert?
+  deliveryProfile    DeliveryPartner?
+  callCenterProfile  CallCenterAgent?
+  kycRecord          KycRecord?
+
+  addresses          Address[]
+  notifications      Notification[]
+  notificationPreference NotificationPreference?
+  deviceTokens       DeviceToken[]
+  createdBroadcasts  EmergencyBroadcast[] @relation("BroadcastCreatedBy")
+  auditLogs          AuditLog[]
+  supportTickets     SupportTicket[]
+  consultationMessages ConsultationMessage[]
+  refreshTokens      RefreshToken[]
+  resetTokens        PasswordResetToken[]
+  otpRecords         OtpRecord[]
+
+  @@index([phone])
+  @@index([role])
+}
+
+model FarmerProfile {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  village            String?
+  district           String?
+  state              String?
+  pincode            String?
+  profileImageUrl    String?
+  experienceYears    Int?
+  totalLandAcres     Decimal?     
+  primaryWaterSource String?
+  kisanCreditCardNo  String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  farms              Farm[]
+  carts              Cart[]
+  orders             Order[]
+  cropProblems       CropProblem[]
+  reviews            Review[]
+}
+
+model Farm {
+  id                 String        @id @default(uuid())
+  farmerId           String
+  farmer             FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  name               String
+  locationVillage    String?
+  locationTaluk      String?
+  locationDistrict   String
+  locationState      String
+  locationPincode    String?
+  totalAreaAcres     Decimal      
+  areaUnit           String        @default("Acres")
+  description        String?
+  latitude           Decimal?     
+  longitude          Decimal?     
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  fields             FarmField[]
+  cropProblems       CropProblem[]
+
+  @@index([farmerId])
+}
+
+model FarmField {
+  id                 String        @id @default(uuid())
+  farmId             String
+  farm               Farm          @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  name               String
+  areaAcres          Decimal      
+  areaUnit           String        @default("Acres")
+  soilType           String?       // Black, Red, Alluvial, Laterite, Sandy, Clay, Loam
+  irrigationType     String?       // Drip, Canal, Borewell, Rainfed, Sprinkler
+  status             String        @default("ACTIVE")
+  description        String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  crops              Crop[]
+  cropProblems       CropProblem[]
+
+  @@index([farmId])
+}
+
+model Crop {
+  id                 String        @id @default(uuid())
+  fieldId            String
+  field              FarmField     @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  cropName           String        // Paddy, Wheat, Maize, Cotton, Tomato, Chilli, Potato, Onion, Groundnut, Sugarcane
+  cropCategory       String?       // Cereals, Pulses, Commercial, Vegetables, Fruits, Oilseeds
+  variety            String?
+  sowingDate         DateTime
+  expectedHarvestDate DateTime?
+  areaPlantedAcres   Decimal      
+  areaUnit           String        @default("Acres")
+  stage              String?       // Germination, Vegetative, Flowering, Fruiting, Harvesting
+  status String @default("GROWING")
+  notes              String?      
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  cropProblems       CropProblem[]
+
+  @@index([fieldId])
+  @@index([status])
+}
+
+// ----------------------------------------------------
+// SELLER & SHOP MANAGEMENT
+// ----------------------------------------------------
+
+model Seller {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName       String
+  gstin              String?       @unique
+  pesticideLicenseNo String
+  fertilizerLicenseNo String?
+  bankAccountNumber  String?
+  bankIfscCode       String?
+  verificationStatus String @default("SUBMITTED")
+  verifiedAt         DateTime?
+  verifiedByUserId   String?
+  rejectionReason    String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  shops              Shop[]
+  products           Product[]
+  listings           SellerListing[]
+}
+
+model Shop {
+  id                 String        @id @default(uuid())
+  sellerId           String
+  seller             Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  shopName           String
+  addressLine        String
+  villageLandmark    String?
+  taluk              String
+  district           String
+  state              String
+  pincode            String
+  contactPhone       String
+  latitude           Decimal?     
+  longitude          Decimal?     
+  isOperating        Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  inventories        Inventory[]
+  orders             Order[]
+  listings           SellerListing[]
+}
+
+// ----------------------------------------------------
+// EXPERT & STAFF PROFILES
+// ----------------------------------------------------
+
+model Expert {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization     String        // Pathology, Entomology, Agronomy, Soil Science
+  qualification      String
+  certificationNo    String?
+  yearsExperience    Int
+  rating             Decimal?      @default(5.0)
+  isAvailable        Boolean       @default(true)
+  verificationStatus String        @default("VERIFIED") // PENDING_VERIFICATION, VERIFIED, SUSPENDED, INACTIVE
+  languages          String?       // en, te, kn, hi, ta, mr
+  isDemo             Boolean       @default(true)
+
+  consultations      Consultation[]
+  guidances          ExpertGuidance[]
+}
+
+model DeliveryPartner {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType        String        // Bike, Auto, Pickup Truck
+  vehicleNumber      String
+  activeDistrict     String
+  isAvailable        Boolean       @default(true)
+
+  deliveries         Delivery[]
+}
+
+model CallCenterAgent {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentCode          String        @unique
+  department         String        @default("FARMER_SUPPORT")
+  deskPhone          String?
+
+  assistedOrders     Order[]       @relation("AssistedByAgent")
+  assistedProblems   CropProblem[] @relation("AssistedProblemByAgent")
+  assignedTickets    SupportTicket[]
+}
+
+// ----------------------------------------------------
+// CATALOG & PRODUCTS
+// ----------------------------------------------------
+
+model Category {
+  id                 String        @id @default(uuid())
+  name               String
+  slug               String        @unique
+  description        String?
+  parentId           String?
+  parent             Category?     @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children           Category[]    @relation("CategoryHierarchy")
+  imageUrl           String?
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+
+  products           Product[]
+}
+
+model Product {
+  id                 String        @id @default(uuid())
+  sellerId           String
+  seller             Seller        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId         String
+  category           Category      @relation(fields: [categoryId], references: [id])
+  name               String
+  slug               String        @unique
+  brand              String
+  manufacturer       String
+  description        String       
+  activeIngredients  String?       // e.g. Chlorantraniliprole 18.5% w/w SC
+  formulationType    String?       // SC, EC, WP, GR, SP
+  targetPestsDiseases String?      // Stem borer, Leaf folder, Blast
+  targetCrops        String?       // Chilli, Tomato, Rice, Cotton, Maize
+  dosageInstructions String?       // 60 ml per acre in 200L water
+  safetyStorageInfo  String?       // Store in cool, dry place away from sunlight
+  packSize           Decimal      
+  packUnit           String        // ml, L, g, kg
+  mrp                Decimal      
+  sellingPrice       Decimal      
+  status String @default("APPROVED")
+  isDemo             Boolean       @default(true)
+  rejectionReason    String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  images             ProductImage[]
+  compliance         ProductCompliance?
+  variants           ProductVariant[]
+  listings           SellerListing[]
+  inventories        Inventory[]
+  cartItems          CartItem[]
+  orderItems         OrderItem[]
+  reviews            Review[]
+  referencedGuidances ExpertGuidance[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model ProductImage {
+  id                 String        @id @default(uuid())
+  productId          String
+  product            Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  imageUrl           String
+  altText            String?
+  isPrimary          Boolean       @default(false)
+  displayOrder       Int           @default(0)
+}
+
+model ProductCompliance {
+  id                 String        @id @default(uuid())
+  productId          String        @unique
+  product            Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cgbRegistrationNo  String?       // Central Insecticides Board Registration
+  toxicityClass      String?       // Green, Blue, Yellow, Red triangle label
+  hazardWarning      String?
+  waitingPeriodDays  Int?          // Pre-harvest interval (PHI)
+  antidoteInfo       String?
+  officialLabelUrl   String?
+  safetyDocumentUrl  String?
+  verificationStatus String        @default("APPROVED")
+  verifiedByUserId   String?
+  verifiedAt         DateTime?
+  regulatoryNotes    String?
+}
+
+model ProductVariant {
+  id                 String          @id @default(uuid())
+  productId          String
+  product            Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  packSize           Decimal        
+  packUnit           String          // ml, L, g, kg
+  sku                String?
+  mrp                Decimal        
+  sellingPrice       Decimal        
+  stockQuantity      Int             @default(100)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+
+  listings           SellerListing[]
+  cartItems          CartItem[]
+}
+
+model SellerListing {
+  id                 String          @id @default(uuid())
+  sellerId           String
+  seller             Seller          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  shopId             String
+  shop               Shop            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId          String
+  variant            ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  sellingPrice       Decimal        
+  quantityAvailable  Int             @default(50)
+  isVerifiedSeller   Boolean         @default(true)
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  cartItems          CartItem[]
+
+  @@unique([shopId, variantId])
+}
+
+model Inventory {
+  id                 String        @id @default(uuid())
+  productId          String
+  product            Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  shopId             String
+  shop               Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  quantityAvailable  Int           @default(0)
+  reservedQuantity   Int           @default(0)
+  reorderLevel       Int           @default(5)
+  lastRestockedAt    DateTime?
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([productId, shopId])
+}
+
+// ----------------------------------------------------
+// CART & ORDERS
+// ----------------------------------------------------
+
+model Cart {
+  id                 String        @id @default(uuid())
+  farmerId           String        @unique
+  farmer             FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  items              CartItem[]
+}
+
+model CartItem {
+  id                 String          @id @default(uuid())
+  cartId             String
+  cart               Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product         @relation(fields: [productId], references: [id])
+  variantId          String?
+  variant            ProductVariant? @relation(fields: [variantId], references: [id])
+  sellerListingId    String?
+  listing            SellerListing?  @relation(fields: [sellerListingId], references: [id])
+  quantity           Int             @default(1)
+  priceAtAddition    Decimal        
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model Order {
+  id                 String        @id @default(uuid())
+  orderNumber        String        @unique
+  farmerId           String
+  farmer             FarmerProfile @relation(fields: [farmerId], references: [id])
+  shopId             String
+  shop               Shop          @relation(fields: [shopId], references: [id])
+  assistedByAgentId  String?
+  assistedByAgent    CallCenterAgent? @relation("AssistedByAgent", fields: [assistedByAgentId], references: [id])
+  shippingAddressId  String
+  shippingAddress    Address       @relation(fields: [shippingAddressId], references: [id])
+  status String   @default("PENDING_ACCEPTANCE")
+  paymentStatus String @default("PENDING")
+  totalItemsPrice    Decimal      
+  deliveryFee        Decimal       @default(0.00)
+  taxAmount          Decimal       @default(0.00)
+  netAmount          Decimal      
+  cancellationReason String?
+  rejectionReason    String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  items              OrderItem[]
+  payments           Payment[]
+  invoice            Invoice?
+  delivery           Delivery?
+  supportTickets     SupportTicket[]
+
+  @@index([farmerId])
+  @@index([shopId])
+  @@index([status])
+}
+
+model OrderItem {
+  id                 String        @id @default(uuid())
+  orderId            String
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product       @relation(fields: [productId], references: [id])
+  productName        String
+  packSize           Decimal      
+  packUnit           String
+  quantity           Int
+  unitPrice          Decimal      
+  totalPrice         Decimal      
+}
+
+model Payment {
+  id                 String        @id @default(uuid())
+  orderId            String
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentProvider    String        // RAZORPAY, CASH_ON_DELIVERY, UPI_DIRECT
+  transactionId      String?
+  paymentMethod      String?       // UPI, CARD, NETBANKING, COD
+  status String @default("PENDING")
+  amount             Decimal      
+  currency           String        @default("INR")
+  paidAt             DateTime?
+  rawResponse        String?      
+  createdAt          DateTime      @default(now())
+}
+
+model Invoice {
+  id                 String        @id @default(uuid())
+  orderId            String        @unique
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  invoiceNumber      String        @unique
+  pdfUrl             String?
+  issueDate          DateTime      @default(now())
+  totalTaxable       Decimal      
+  cgst               Decimal      
+  sgst               Decimal      
+  igst               Decimal       @default(0.00)
+  grandTotal         Decimal      
+}
+
+model Address {
+  id                 String        @id @default(uuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipientName      String
+  phone              String
+  houseNo            String
+  streetLandmark     String
+  villageTaluk       String
+  district           String
+  state              String
+  pincode            String
+  isDefault          Boolean       @default(false)
+  createdAt          DateTime      @default(now())
+
+  orders             Order[]
+}
+
+model Delivery {
+  id                 String        @id @default(uuid())
+  orderId            String        @unique
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryPartnerId  String?
+  deliveryPartner    DeliveryPartner? @relation(fields: [deliveryPartnerId], references: [id])
+  status String @default("UNASSIGNED")
+  trackingCode       String        @unique
+  deliveryOtpHash    String?
+  assignedAt         DateTime?
+  pickedUpAt         DateTime?
+  deliveredAt        DateTime?
+  proofOfDeliveryUrl String?
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([orderId, deliveryPartnerId])
+}
+
+// ----------------------------------------------------
+// CROP PROBLEM & CONSULTATION
+// ----------------------------------------------------
+
+model CropProblem {
+  id                 String        @id @default(uuid())
+  farmerId           String
+  farmer             FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  farmId             String?
+  farm               Farm?         @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  fieldId            String?
+  field              FarmField?    @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  cropId             String
+  crop               Crop          @relation(fields: [cropId], references: [id], onDelete: Cascade)
+  assistedByAgentId  String?
+  assistedByAgent    CallCenterAgent? @relation("AssistedProblemByAgent", fields: [assistedByAgentId], references: [id])
+  title              String
+  description        String       
+  category           String        @default("OTHER") // PEST, DISEASE, WEED, NUTRIENT, WATER, SOIL, WEATHER, GROWTH, OTHER
+  severity           String        @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  affectedAreaAcres  Decimal?     
+  symptomsObserved   String?
+  observedDate       DateTime?
+  leafColor          String?
+  leafCondition      String?
+  plantCondition     String?
+  affectedArea       String?
+  structuredObservationsJson String?
+  status             String        @default("OPEN") // OPEN, UNDER_REVIEW, EXPERT_ASSIGNED, IN_CONSULTATION, GUIDANCE_PROVIDED, RESOLVED, CLOSED, CANCELLED
+  priority           String        @default("MEDIUM")
+  resolvedAt         DateTime?
+  resolutionNotes    String?
+  submittedAt        DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  images             CropProblemImage[]
+  consultation       Consultation?
+  supportTickets     SupportTicket[]
+
+  @@index([farmerId])
+  @@index([farmId])
+  @@index([fieldId])
+  @@index([cropId])
+  @@index([status])
+  @@index([category])
+  @@index([severity])
+  @@index([farmerId, status])
+}
+
+model CropProblemImage {
+  id                 String        @id @default(uuid())
+  cropProblemId      String
+  cropProblem        CropProblem   @relation(fields: [cropProblemId], references: [id], onDelete: Cascade)
+  imageUrl           String
+  thumbnailUrl       String?
+  fileType           String?
+  fileSize           Int?
+  caption            String?
+  displayOrder       Int           @default(0)
+  uploadedAt         DateTime      @default(now())
+}
+
+model Consultation {
+  id                  String       @id @default(uuid())
+  cropProblemId       String       @unique
+  cropProblem         CropProblem  @relation(fields: [cropProblemId], references: [id], onDelete: Cascade)
+  expertId            String?
+  expert              Expert?      @relation(fields: [expertId], references: [id], onDelete: SetNull)
+  diagnosisNotes      String?     
+  recommendedActions  String?     
+  safetyPrecautions   String?     
+  status              String       @default("REQUESTED") // REQUESTED, ASSIGNED, ACTIVE, WAITING_FOR_FARMER, WAITING_FOR_EXPERT, COMPLETED, CANCELLED
+  startedAt           DateTime?
+  completedAt         DateTime?
+  closedAt            DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  messages            ConsultationMessage[]
+  guidances           ExpertGuidance[]
+
+  @@index([expertId])
+  @@index([status])
+}
+
+model ConsultationMessage {
+  id                  String       @id @default(uuid())
+  consultationId      String
+  consultation        Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  senderId            String
+  sender              User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  message             String
+  isInternalNote      Boolean      @default(false)
+  readAt              DateTime?
+  createdAt           DateTime     @default(now())
+
+  @@index([consultationId])
+  @@index([senderId])
+  @@index([consultationId, createdAt])
+}
+
+model ExpertGuidance {
+  id                  String       @id @default(uuid())
+  consultationId      String
+  consultation        Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  expertId            String
+  expert              Expert       @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  guidanceText        String
+  visibility          String       @default("FARMER_VISIBLE") // FARMER_VISIBLE, INTERNAL
+  referencedProductId String?
+  referencedProduct   Product?     @relation(fields: [referencedProductId], references: [id], onDelete: SetNull)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([consultationId])
+  @@index([expertId])
+}
+
+// ----------------------------------------------------
+// NOTIFICATIONS, SUPPORT & AUDIT
+// ----------------------------------------------------
+
+model Notification {
+  id                 String                 @id @default(uuid())
+  userId             String
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title              String
+  message            String
+  type               String                 // ORDER_UPDATE, CONSULTATION_UPDATE, DELIVERY_UPDATE, CROP_ADVISORY, SYSTEM, EMERGENCY_BROADCAST
+  priority           String                 @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  isRead             Boolean                @default(false)
+  readAt             DateTime?
+  metadataJson       String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  deliveries         NotificationDelivery[]
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([type])
+}
+
+model NotificationDelivery {
+  id                 String        @id @default(uuid())
+  notificationId     String
+  notification       Notification  @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  channel            String        // IN_APP, SMS, WHATSAPP, PUSH, IVR
+  status             String        @default("PENDING") // PENDING, SENT, DELIVERED, FAILED, SKIPPED
+  provider           String        // DEMO, TWILIO, MSG91, FCM, INFOBIP
+  providerMessageId  String?
+  recipientPhone     String?
+  attempts           Int           @default(1)
+  deliveredAt        DateTime?
+  failedAt           DateTime?
+  errorCode          String?
+  errorMessage       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([notificationId])
+  @@index([channel])
+  @@index([status])
+}
+
+model NotificationPreference {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  smsEnabled         Boolean       @default(true)
+  whatsappEnabled    Boolean       @default(true)
+  pushEnabled        Boolean       @default(true)
+  inAppEnabled       Boolean       @default(true)
+  language           String        @default("en") // en, te, kn, hi, ta, mr
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model DeviceToken {
+  id                 String        @id @default(uuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceToken        String        @unique
+  platform           String        @default("ANDROID") // ANDROID, IOS, WEB
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model EmergencyBroadcast {
+  id                 String        @id @default(uuid())
+  createdByUserId    String
+  createdByUser      User          @relation("BroadcastCreatedBy", fields: [createdByUserId], references: [id])
+  title              String
+  message            String
+  targetState        String?
+  targetDistrict     String?
+  targetCrop         String?
+  targetLanguage     String?
+  channels           String        // comma-separated: SMS,WHATSAPP,PUSH,IVR
+  recipientCount     Int           @default(0)
+  status             String        @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  sentAt             DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([createdByUserId])
+  @@index([status])
+}
+
+model SupportTicket {
+  id                 String        @id @default(uuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId            String?
+  order              Order?        @relation(fields: [orderId], references: [id])
+  cropProblemId      String?
+  cropProblem        CropProblem?  @relation(fields: [cropProblemId], references: [id])
+  assignedAgentId    String?
+  assignedAgent      CallCenterAgent? @relation(fields: [assignedAgentId], references: [id])
+  subject            String
+  description        String       
+  priority String @default("MEDIUM")
+  status String @default("OPEN")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model Review {
+  id                 String        @id @default(uuid())
+  farmerId           String
+  farmer             FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating             Int           // 1 to 5
+  comment            String?      
+  isApproved         Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+}
+
+model AuditLog {
+  id                 String        @id @default(uuid())
+  userId             String?
+  user               User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action             String        // CREATE_ORDER, VERIFY_SELLER, APPROVE_PRODUCT, CONSULTATION_SUBMITTED
+  entityName         String        // Product, Order, Seller, Consultation
+  entityId           String
+  changesJson        String?      
+  ipAddress          String?
+  userAgent          String?
+  createdAt          DateTime      @default(now())
+
+  @@index([entityName, entityId])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  isRevoked   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  expiresAt   DateTime
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ----------------------------------------------------
+// PHASE 10 COMMERCIAL ENGINE, FINANCIAL LEDGER & RECONCILIATION
+// ----------------------------------------------------
+
+model BusinessSetting {
+  id                         String   @id @default("default")
+  platformCommissionPercent Decimal  @default(5.0)
+  fixedTransactionFee        Decimal  @default(10.0)
+  deliveryFeeDefault         Decimal  @default(50.0)
+  minOrderValueForFreeDelivery Decimal @default(1000.0)
+  sellerSettlementDays       Int      @default(7)
+  cancellationWindowHours    Int      @default(24)
+  updatedAt                  DateTime @updatedAt
+}
+
+model SellerCommission {
+  id                 String   @id @default(uuid())
+  orderId            String   @unique
+  sellerId           String
+  grossAmount        Decimal
+  commissionPercent  Decimal
+  commissionAmount   Decimal
+  fixedFeeAmount     Decimal  @default(0.0)
+  netSellerAmount    Decimal
+  status             String   @default("PENDING") // PENDING, ELIGIBLE, PROCESSING, PAID, CANCELLED, REVERSED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model SellerSettlement {
+  id                 String   @id @default(uuid())
+  sellerId           String
+  settlementRef      String   @unique
+  totalGross         Decimal
+  totalCommission    Decimal
+  totalNetPayout     Decimal
+  status             String   @default("PENDING") // PENDING, ELIGIBLE, PROCESSING, PAID, FAILED, DEMO
+  payoutProvider     String   @default("DEMO")    // DEMO, RAZORPAY_X, BANK_TRANSFER
+  idempotencyKey     String   @unique
+  eligibleAt         DateTime
+  paidAt             DateTime?
+  rejectionReason    String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  ledgerEntries      FinancialLedger[]
+}
+
+model FinancialLedger {
+  id                 String   @id @default(uuid())
+  transactionId      String   // Groups balanced DEBIT and CREDIT entries for a single operation
+  idempotencyKey     String   @unique
+  accountType        String   // SELLER_PAYABLE, PLATFORM_COMMISSION, CUSTOMER_PAYMENT, ESCROW, DISCOUNTS
+  direction          String   // DEBIT, CREDIT
+  currency           String   @default("INR")
+  amount             Decimal
+  orderId            String?
+  sellerId           String?
+  settlementId       String?
+  settlement         SellerSettlement? @relation(fields: [settlementId], references: [id])
+  parentEntryId      String?  // References original entry during reversal
+  snapshotBalance    Decimal  @default(0.0) // Non-authoritative snapshot
+  description        String
+  createdAt          DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([sellerId])
+  @@index([orderId])
+  @@index([accountType])
+}
+
+model Promotion {
+  id                 String    @id @default(uuid())
+  code               String    @unique
+  description        String
+  discountType       String    @default("PERCENTAGE") // PERCENTAGE, FIXED
+  discountValue      Decimal
+  minOrderAmount     Decimal   @default(0.0)
+  maxDiscountAmount  Decimal?
+  applicableSellerId String?
+  applicableCategoryId String?
+  firstOrderOnly     Boolean   @default(false)
+  userUsageLimit     Int       @default(1)
+  totalUsageLimit    Int       @default(1000)
+  usedCount          Int       @default(0)
+  validFrom          DateTime  @default(now())
+  validUntil         DateTime?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+}
+
+model Referral {
+  id                 String   @id @default(uuid())
+  referrerUserId     String
+  refereeUserId      String   @unique
+  referralCode       String
+  qualifyingOrderId  String?
+  status             String   @default("PENDING") // PENDING, ORDER_QUALIFIED, REWARD_GRANTED, REVERSED
+  rewardAmount       Decimal  @default(50.0)
+  grantedAt          DateTime?
+  reversedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model FarmerFavorite {
+  id                 String   @id @default(uuid())
+  farmerId           String
+  favoriteType       String   // PRODUCT, SELLER
+  targetId           String
+  createdAt          DateTime @default(now())
+
+  @@unique([farmerId, favoriteType, targetId])
+}
+
+model SellerServiceArea {
+  id                 String   @id @default(uuid())
+  sellerId           String
+  district           String
+  state              String
+  pincode            String?
+  isSupported        Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  @@index([sellerId])
+  @@index([district, state])
+}
+
+// ----------------------------------------------------
+// OTP & KYC SECURITY SYSTEM
+// ----------------------------------------------------
+
+model OtpRecord {
+  id                 String   @id @default(uuid())
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identifier         String   // Phone or Email
+  otpHash            String
+  purpose            String   @default("LOGIN") // LOGIN, REGISTER, PASSWORD_RESET, KYC_VERIFICATION
+  expiresAt          DateTime
+  attempts           Int      @default(0)
+  maxAttempts        Int      @default(3)
+  isUsed             Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  @@index([identifier])
+}
+
+model KycRecord {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  maskedAadhaar      String?  // e.g. "•••• •••• 1234"
+  aadhaarRefId       String?  // Encrypted reference / hash from provider
+  maskedPan          String?  // e.g. "ABCDE••••F"
+  panRefId           String?
+  drivingLicenseNo   String?
+  vehicleType        String?
+  vehicleNumber      String?
+  bankAccountNo      String?  // Masked bank account
+  bankIfsc           String?
+  status             String   @default("PENDING") // PENDING, UNDER_REVIEW, VERIFIED, REJECTED, NEEDS_INFO
+  rejectionReason    String?
+  adminNotes         String?
+  verifiedAt         DateTime?
+  verifiedByUserId   String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  documents          KycDocument[]
+}
+
+model KycDocument {
+  id                 String   @id @default(uuid())
+  kycRecordId        String
+  kycRecord          KycRecord @relation(fields: [kycRecordId], references: [id], onDelete: Cascade)
+  documentType       String   // AADHAAR_FRONT, AADHAAR_BACK, PAN_CARD, DRIVING_LICENSE, EXPERT_QUALIFICATION, PESTICIDE_LICENSE
+  fileUrl            String
+  fileName           String?
+  status             String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  rejectionReason    String?
+  uploadedAt         DateTime @default(now())
+
+  @@index([kycRecordId])
+}
