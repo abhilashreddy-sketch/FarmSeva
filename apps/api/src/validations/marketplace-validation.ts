@@ -61,3 +61,34 @@ export const addToCartSchema = z.object({
 export const updateCartItemSchema = z.object({
   quantity: z.number().int().min(0, 'Quantity must be at least 0'),
 });
+
+export const createSellerProductSchema = z
+  .object({
+    name: z.string().min(2, 'Product name must be at least 2 characters'),
+    categoryId: z.string().min(1, 'Category is required'),
+    brand: z.string().min(1, 'Brand name is required'),
+    manufacturer: z.string().min(1, 'Manufacturer name is required'),
+    description: z.string().min(10, 'Description must be at least 10 characters'),
+    activeIngredients: z.string().optional(),
+    formulationType: z.string().optional(),
+    targetPestsDiseases: z.string().optional(),
+    targetCrops: z.string().optional(),
+    dosageInstructions: z.string().optional(),
+    safetyStorageInfo: z.string().optional(),
+    packSize: z.number().positive('Pack size must be positive'),
+    packUnit: z.string().min(1, 'Pack unit is required (e.g. ml, L, g, kg)'),
+    sku: z.string().optional(),
+    mrp: z.number().positive('MRP must be positive'),
+    sellingPrice: z.number().positive('Selling price must be positive'),
+    stockQuantity: z.number().int().nonnegative('Stock quantity cannot be negative').default(50),
+    shopId: z.string().optional(),
+    imageUrls: z.array(z.string()).optional().default([]),
+    cgbRegistrationNo: z.string().optional(),
+    toxicityClass: z.enum(['GREEN', 'BLUE', 'YELLOW', 'RED']).optional(),
+  })
+  .refine((data) => data.sellingPrice <= data.mrp, {
+    message: 'Selling price cannot exceed Maximum Retail Price (MRP)',
+    path: ['sellingPrice'],
+  });
+
+

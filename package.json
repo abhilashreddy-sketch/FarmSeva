@@ -16,7 +16,8 @@
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
-    "db:seed": "npx tsx packages/database/seed.ts"
+    "db:seed": "npx tsx packages/database/seed.ts",
+    "db:seed-categories": "npx tsx packages/database/seed-categories.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

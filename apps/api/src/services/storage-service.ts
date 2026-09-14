@@ -102,11 +102,47 @@ export class StorageService {
       );
     }
     const sanitizedKey = this.sanitizeFilename(params.fileName);
+    const uniqueKey = `file_${crypto.randomBytes(8).toString('hex')}_${sanitizedKey}`;
     return {
-      url: `/uploads/${sanitizedKey}`,
-      key: sanitizedKey,
+      url: `/uploads/${uniqueKey}`,
+      key: uniqueKey,
       mimeType: params.mimeType,
       size: params.fileBuffer.length,
     };
   }
+
+  /**
+   * Dedicated product photo uploader enforcing JPEG, PNG, WEBP and 5MB limit.
+   */
+  static async uploadProductPhoto(params: { fileName: string; fileBuffer: Buffer; mimeType: string }) {
+    const allowedPhotoMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const normalizedMime = params.mimeType.toLowerCase();
+
+    if (!allowedPhotoMimes.includes(normalizedMime)) {
+      throw new ApiError(
+        'INVALID_MIME_TYPE',
+        `Product image format '${params.mimeType}' is not supported. Allowed image formats: JPEG, PNG, WEBP.`,
+        400
+      );
+    }
+
+    if (params.fileBuffer.length > this.MAX_FILE_SIZE_BYTES) {
+      throw new ApiError(
+        'FILE_TOO_LARGE',
+        'Product photo exceeds maximum allowed file size of 5MB.',
+        400
+      );
+    }
+
+    const sanitizedName = this.sanitizeFilename(params.fileName);
+    const uniqueKey = `product_${crypto.randomUUID()}_${sanitizedName}`;
+
+    return {
+      url: `/uploads/products/${uniqueKey}`,
+      key: uniqueKey,
+      mimeType: normalizedMime,
+      size: params.fileBuffer.length,
+    };
+  }
 }
+

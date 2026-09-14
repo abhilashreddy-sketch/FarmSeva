@@ -12,5 +12,7 @@ router.use(requireRole(UserRole.ADMIN));
 router.post('/categories', AdminMarketplaceController.createCategory);
 router.get('/pending-products', AdminMarketplaceController.getPendingProducts);
 router.patch('/products/:id/review', AdminMarketplaceController.reviewProduct);
+router.post('/products/:id/review', AdminMarketplaceController.reviewProduct);
 
 export default router;
+
