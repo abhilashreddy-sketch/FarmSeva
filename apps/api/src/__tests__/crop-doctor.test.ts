@@ -235,4 +235,182 @@ describe('FARM SEVA AI Crop Doctor Suite', () => {
     expect(forbiddenEscalate.status).toBe(403);
     expect(forbiddenEscalate.body.error.code).toBe('ACCESS_DENIED');
   });
+
+  // 8. GEMINI PROVIDER RETRY & FALLBACK UNIT TESTS
+  describe('8. Gemini Vision Provider Retry & Fallback Robustness', () => {
+    const { GeminiVisionProvider } = require('../providers/ai-vision-provider');
+    let provider: any;
+    let originalFetch: any;
+
+    beforeEach(() => {
+      provider = new GeminiVisionProvider();
+      originalFetch = global.fetch;
+      process.env.AI_API_KEY = 'test-fake-gemini-key';
+      process.env.AI_MODEL = 'gemini-3.8-flash';
+      process.env.AI_FALLBACK_MODEL = 'gemini-2.5-flash';
+      process.env.AI_MAX_RETRIES = '2'; // Fast retries for unit tests
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    const mockParams = {
+      imageBuffers: [{ buffer: Buffer.from('fake-image-bytes'), mimeType: 'image/png' }],
+      farmerContext: { preferredLanguage: 'en', crop: 'Tomato' },
+    };
+
+    const validGeminiResponse = {
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  crop: { name: 'Tomato', confidence: 92 },
+                  assessment: { primaryProblem: 'Early Blight', problemType: 'DISEASE', confidence: 88 },
+                  observations: ['Brown spots on lower leaves'],
+                  possibleCauses: ['Alternaria solani fungus'],
+                  recommendedActions: ['Apply organic copper fungicide'],
+                  prevention: ['Avoid overhead irrigation'],
+                  medicineGuidance: ['Fungicide spray category'],
+                  needsExpert: false,
+                  imageQuality: { acceptable: true, reason: 'Clear photo' },
+                }),
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    test('8a. Successful Gemini response returns parsed analysis result', async () => {
+      global.fetch = jest.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => validGeminiResponse,
+      } as any);
+
+      const result = await provider.analyzeCropImages(mockParams);
+      expect(result.crop.name).toBe('Tomato');
+      expect(result.assessment.primaryProblem).toBe('Early Blight');
+    });
+
+    test('8b. 503 UNAVAILABLE followed by successful retry succeeds', async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 503,
+          json: async () => ({
+            error: { code: 503, status: 'UNAVAILABLE', message: 'This model is currently experiencing high demand.' },
+          }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => validGeminiResponse,
+        } as any);
+
+      global.fetch = fetchMock;
+
+      const result = await provider.analyzeCropImages(mockParams);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(result.crop.name).toBe('Tomato');
+    });
+
+    test('8c. 429 RESOURCE_EXHAUSTED retry succeeds on subsequent attempt', async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 429,
+          json: async () => ({
+            error: { code: 429, status: 'RESOURCE_EXHAUSTED', message: 'Quota exceeded' },
+          }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => validGeminiResponse,
+        } as any);
+
+      global.fetch = fetchMock;
+
+      const result = await provider.analyzeCropImages(mockParams);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(result.assessment.primaryProblem).toBe('Early Blight');
+    });
+
+    test('8d. Permanent 400 Bad Request fails immediately without retrying', async () => {
+      const fetchMock = jest.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({
+          error: { code: 400, status: 'INVALID_ARGUMENT', message: 'Invalid payload structure' },
+        }),
+      } as any);
+
+      global.fetch = fetchMock;
+
+      await expect(provider.analyzeCropImages(mockParams)).rejects.toThrow();
+      expect(fetchMock).toHaveBeenCalledTimes(1); // No retries!
+    });
+
+    test('8e. Permanent 401/403 Auth error fails immediately without retrying', async () => {
+      const fetchMock = jest.fn().mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: async () => ({
+          error: { code: 401, status: 'UNAUTHENTICATED', message: 'API key expired' },
+        }),
+      } as any);
+
+      global.fetch = fetchMock;
+
+      await expect(provider.analyzeCropImages(mockParams)).rejects.toThrow('AI service authorization failed');
+      expect(fetchMock).toHaveBeenCalledTimes(1); // No retries!
+    });
+
+    test('8f. Primary model 503 exhaustion triggers Fallback Model execution', async () => {
+      const fetchMock = jest
+        .fn()
+        // Primary model (gemini-3.8-flash) attempt 1 & 2 fail with 503
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 503,
+          json: async () => ({ error: { code: 503, status: 'UNAVAILABLE', message: 'High demand spike' } }),
+        } as any)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 503,
+          json: async () => ({ error: { code: 503, status: 'UNAVAILABLE', message: 'High demand spike' } }),
+        } as any)
+        // Fallback model (gemini-2.5-flash) succeeds on 1st attempt
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          json: async () => validGeminiResponse,
+        } as any);
+
+      global.fetch = fetchMock;
+
+      const result = await provider.analyzeCropImages(mockParams);
+      expect(fetchMock).toHaveBeenCalledTimes(3); // 2 primary + 1 fallback
+      expect(result.crop.name).toBe('Tomato');
+    });
+
+    test('8g. Non-JSON invalid output throws AI_RESPONSE_MALFORMED', async () => {
+      global.fetch = jest.fn().mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [{ content: { parts: [{ text: 'This is plain text and not valid JSON' }] } }],
+        }),
+      } as any);
+
+      await expect(provider.analyzeCropImages(mockParams)).rejects.toThrow('AI provider output was not valid JSON');
+    });
+  });
 });
+

@@ -75,5 +75,11 @@ export const env = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/api/v1/auth/google/callback',
   GOOGLE_OAUTH_MODE: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? 'CONFIGURED' : 'NOT_CONFIGURED',
+
+  // AI Vision Provider Configuration
+  AI_PROVIDER: process.env.AI_PROVIDER || 'GEMINI',
+  AI_MODEL: process.env.AI_MODEL || 'gemini-3.8-flash',
+  AI_FALLBACK_MODEL: process.env.AI_FALLBACK_MODEL || 'gemini-2.5-flash',
+  AI_MAX_RETRIES: parseInt(process.env.AI_MAX_RETRIES || '4', 10),
 };
 
