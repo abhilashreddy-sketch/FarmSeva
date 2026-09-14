@@ -20,10 +20,13 @@ interface AuthContextType {
   login: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginPhone: (phone: string, password?: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
   loginEmail: (email: string, password?: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
+  loginGoogle: (codeOrToken: { code?: string; idToken?: string; redirectUri?: string }) => Promise<{ success: boolean; error?: string }>;
+  initiateGoogleAuth: () => Promise<void>;
   sendOtp: (identifier: string, purpose?: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (identifier: string, otp: string, purpose?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
+  setSession: (token: string, user: User) => void;
   getRoleDashboardPath: (role: string, status: string) => string;
 }
 
@@ -92,6 +95,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('farm_seva_token', accessToken);
     const targetPath = getRoleDashboardPath(loggedInUser.role, loggedInUser.status);
     router.push(targetPath);
+  };
+
+  const setSession = (accessToken: string, loggedInUser: User) => {
+    setUser(loggedInUser);
+    setToken(accessToken);
+    localStorage.setItem('farm_seva_token', accessToken);
+  };
+
+  const initiateGoogleAuth = async () => {
+    try {
+      const redirectUri = `${window.location.origin}/auth/google/callback`;
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/google?redirect_uri=${encodeURIComponent(redirectUri)}`);
+      const data = await res.json();
+      if (data.success && data.data?.url) {
+        window.location.href = data.data.url;
+      } else {
+        alert(data.error?.message || 'Google login service is currently unavailable.');
+      }
+    } catch (e) {
+      console.error('Failed to initiate Google OAuth:', e);
+      alert('Unable to connect to Google OAuth service.');
+    }
+  };
+
+  const loginGoogle = async (codeOrToken: { code?: string; idToken?: string; redirectUri?: string }) => {
+    try {
+      const redirectUri = codeOrToken.redirectUri || `${window.location.origin}/auth/google/callback`;
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...codeOrToken, redirectUri }),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        return { success: false, error: data.error?.message || 'Google authentication failed' };
+      }
+
+      handleAuthSuccess(data.data.user, data.data.accessToken);
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: 'Unable to connect to FARM SEVA. Please try again.' };
+    }
   };
 
   const login = async (phone: string, password: string) => {
@@ -219,10 +265,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         loginPhone,
         loginEmail,
+        loginGoogle,
+        initiateGoogleAuth,
         sendOtp,
         verifyOtp,
         logout,
         setUser,
+        setSession,
         getRoleDashboardPath,
       }}
     >

@@ -82,7 +82,18 @@ export class NotificationService {
 
       // 5. Dispatch to SMS
       if (requestedChannels.includes(NotificationChannel.SMS)) {
-        if (!pref.smsEnabled) {
+        if (!user.phone) {
+          await prisma.notificationDelivery.create({
+            data: {
+              notificationId: notification.id,
+              channel: NotificationChannel.SMS,
+              status: 'SKIPPED',
+              provider: 'DEMO',
+              recipientPhone: '',
+              errorMessage: 'No phone number associated with user account',
+            },
+          });
+        } else if (!pref.smsEnabled) {
           await prisma.notificationDelivery.create({
             data: {
               notificationId: notification.id,
@@ -118,7 +129,18 @@ export class NotificationService {
 
       // 6. Dispatch to WhatsApp
       if (requestedChannels.includes(NotificationChannel.WHATSAPP)) {
-        if (!pref.whatsappEnabled) {
+        if (!user.phone) {
+          await prisma.notificationDelivery.create({
+            data: {
+              notificationId: notification.id,
+              channel: NotificationChannel.WHATSAPP,
+              status: 'SKIPPED',
+              provider: 'DEMO',
+              recipientPhone: '',
+              errorMessage: 'No phone number associated with user account',
+            },
+          });
+        } else if (!pref.whatsappEnabled) {
           await prisma.notificationDelivery.create({
             data: {
               notificationId: notification.id,
@@ -154,7 +176,7 @@ export class NotificationService {
         }
       }
 
-      // 7. Dispatch to Push Notification
+      // 7. Dispatch to Push Notification (FCM)
       if (requestedChannels.includes(NotificationChannel.PUSH)) {
         if (!pref.pushEnabled) {
           await prisma.notificationDelivery.create({
@@ -163,54 +185,82 @@ export class NotificationService {
               channel: NotificationChannel.PUSH,
               status: 'SKIPPED',
               provider: 'DEMO',
-              recipientPhone: user.phone,
-              errorMessage: 'Push notifications disabled in user preferences',
+              errorMessage: 'Push disabled in user preferences',
             },
           });
         } else {
-          const activeTokens = user.deviceTokens.map(dt => dt.deviceToken);
-          const pushRes = await pushProvider.sendPushNotification({
-            deviceTokens: activeTokens,
-            title,
-            body: message,
-            data: metadata ? Object.fromEntries(Object.entries(metadata).map(([k, v]) => [k, String(v)])) : undefined,
-            priority,
+          const deviceTokens = await prisma.deviceToken.findMany({
+            where: { userId },
           });
 
-          await prisma.notificationDelivery.create({
-            data: {
-              notificationId: notification.id,
-              channel: NotificationChannel.PUSH,
-              status: pushRes.status,
-              provider: pushRes.provider,
-              providerMessageId: pushRes.messageId,
-              deliveredAt: pushRes.status === 'SENT' ? new Date() : null,
-              errorMessage: pushRes.error || null,
-            },
-          });
+          if (deviceTokens.length === 0) {
+            await prisma.notificationDelivery.create({
+              data: {
+                notificationId: notification.id,
+                channel: NotificationChannel.PUSH,
+                status: 'SKIPPED',
+                provider: 'DEMO',
+                errorMessage: 'No active device tokens found for user',
+              },
+            });
+          } else {
+            const pushRes = await pushProvider.sendPushNotification({
+              deviceTokens: deviceTokens.map((d) => d.deviceToken),
+              title,
+              body: message,
+              priority,
+            });
+
+            await prisma.notificationDelivery.create({
+              data: {
+                notificationId: notification.id,
+                channel: NotificationChannel.PUSH,
+                status: pushRes.status,
+                provider: pushRes.provider,
+                providerMessageId: pushRes.messageId,
+                deliveredAt: pushRes.status === 'SENT' ? new Date() : null,
+                failedAt: pushRes.status === 'FAILED' ? new Date() : null,
+                errorMessage: pushRes.error || null,
+              },
+            });
+          }
         }
       }
 
       // 8. Dispatch to IVR Voice Call (for URGENT priority or explicitly requested IVR channel)
       if (requestedChannels.includes(NotificationChannel.IVR) || priority === NotificationPriority.URGENT) {
-        const ivrRes = await ivrProvider.triggerVoiceCall({
-          recipientPhone: user.phone,
-          language: userLang,
-          scriptText: `${title}. ${message}`,
-        });
+        if (!user.phone) {
+          await prisma.notificationDelivery.create({
+            data: {
+              notificationId: notification.id,
+              channel: NotificationChannel.IVR,
+              status: 'SKIPPED',
+              provider: 'DEMO',
+              recipientPhone: '',
+              errorMessage: 'No phone number associated with user account',
+            },
+          });
+        } else {
+          const ivrRes = await ivrProvider.triggerVoiceCall({
+            recipientPhone: user.phone,
+            language: userLang,
+            scriptText: `${title}. ${message}`,
+          });
 
-        await prisma.notificationDelivery.create({
-          data: {
-            notificationId: notification.id,
-            channel: NotificationChannel.IVR,
-            status: ivrRes.status,
-            provider: ivrRes.provider,
-            providerMessageId: ivrRes.callId,
-            recipientPhone: ivrRes.recipientPhone,
-            deliveredAt: ivrRes.status === 'SENT' ? new Date() : null,
-            errorMessage: ivrRes.error || null,
-          },
-        });
+          await prisma.notificationDelivery.create({
+            data: {
+              notificationId: notification.id,
+              channel: NotificationChannel.IVR,
+              status: ivrRes.status,
+              provider: ivrRes.provider,
+              providerMessageId: ivrRes.callId,
+              recipientPhone: ivrRes.recipientPhone,
+              deliveredAt: ivrRes.status === 'SENT' ? new Date() : null,
+              failedAt: ivrRes.status === 'FAILED' ? new Date() : null,
+              errorMessage: ivrRes.error || null,
+            },
+          });
+        }
       }
 
       return notification;

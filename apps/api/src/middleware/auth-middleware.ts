@@ -26,7 +26,7 @@ export async function authenticateToken(req: Request, res: Response, next: NextF
     // Verify user status directly from Database to catch real-time suspensions
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, phone: true, role: true, status: true },
+      select: { id: true, phone: true, email: true, role: true, status: true },
     });
 
     if (!user) {
@@ -44,6 +44,7 @@ export async function authenticateToken(req: Request, res: Response, next: NextF
     req.user = {
       userId: user.id,
       phone: user.phone,
+      email: user.email,
       role: user.role,
       status: user.status,
     };

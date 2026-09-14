@@ -9,13 +9,21 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { OtpInput } from '../../components/ui/OtpInput';
 import { Card } from '../../components/ui/Card';
+import { GoogleButton } from '../../components/ui/GoogleButton';
 
 export default function LoginPage() {
   const { t } = useLanguage();
-  const { loginPhone, loginEmail, sendOtp } = useAuth();
+  const { loginPhone, loginEmail, sendOtp, initiateGoogleAuth } = useAuth();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'PHONE' | 'EMAIL'>('PHONE');
+  const [activeTab, setActiveTab] = useState<'PHONE' | 'EMAIL'>('EMAIL');
   const [authMethod, setAuthMethod] = useState<'PASSWORD' | 'OTP'>('PASSWORD');
+
+  const handleGoogleClick = async () => {
+    setIsGoogleLoading(true);
+    await initiateGoogleAuth();
+    setIsGoogleLoading(false);
+  };
 
   // Form Fields
   const [phone, setPhone] = useState('');
@@ -118,8 +126,24 @@ export default function LoginPage() {
             Welcome to FARM SEVA
           </h1>
           <p className="text-xs font-semibold text-slate-500">
-            Select your preferred login option to access your account
+            Sign in to access your farm management & marketplace account
           </p>
+        </div>
+
+        {/* PROMINENT GOOGLE OAUTH BUTTON */}
+        <div className="space-y-3">
+          <GoogleButton
+            onClick={handleGoogleClick}
+            isLoading={isGoogleLoading}
+            text="Continue with Google"
+          />
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="border-t border-slate-200 w-full" />
+            <span className="bg-white px-3 text-xs font-bold text-slate-400 uppercase tracking-wider absolute">
+              OR
+            </span>
+          </div>
         </div>
 
         {/* LOGIN METHOD TABS (Phone vs Email) */}

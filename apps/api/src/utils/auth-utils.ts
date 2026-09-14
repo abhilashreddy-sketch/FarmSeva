@@ -6,7 +6,7 @@ import { UserRole, UserStatus } from '@farm-seva/shared';
 
 export interface JwtPayload {
   userId: string;
-  phone: string;
+  phone?: string | null;
   role: UserRole | string;
   status: UserStatus | string;
 }

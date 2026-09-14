@@ -427,6 +427,194 @@ export class AuthService {
   }
 
   /**
+   * Google OAuth Login & Account Linking Service.
+   */
+  static async loginWithGoogle(
+    googlePayload: {
+      googleId: string;
+      email: string;
+      emailVerified: boolean;
+      fullName: string;
+      avatarUrl?: string;
+    },
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    // CASE 4: Google email is not verified by Google -> Reject safely
+    if (!googlePayload.emailVerified) {
+      await logAuditEvent({
+        action: 'LOGIN_FAILED_UNVERIFIED_GOOGLE_EMAIL',
+        entityName: 'User',
+        entityId: 'UNKNOWN',
+        changesJson: { email: googlePayload.email },
+        ipAddress,
+        userAgent,
+      });
+      throw {
+        statusCode: 400,
+        code: 'AUTH_EMAIL_UNVERIFIED',
+        message: 'Your Google email is not verified by Google. Please verify your Google account email first.',
+      };
+    }
+
+    const email = googlePayload.email.toLowerCase().trim();
+
+    // Check if user already exists by googleId
+    let user = await prisma.user.findFirst({
+      where: { googleId: googlePayload.googleId },
+      include: {
+        farmerProfile: true,
+        sellerProfile: true,
+        expertProfile: true,
+        deliveryProfile: true,
+        callCenterProfile: true,
+      },
+    });
+
+    // CASE 2: If not found by googleId, check if existing user has the same verified email
+    if (!user) {
+      user = await prisma.user.findFirst({
+        where: { email },
+        include: {
+          farmerProfile: true,
+          sellerProfile: true,
+          expertProfile: true,
+          deliveryProfile: true,
+          callCenterProfile: true,
+        },
+      });
+
+      if (user) {
+        // Link existing account with Google identity
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            googleId: googlePayload.googleId,
+            emailVerified: true,
+            avatarUrl: user.avatarUrl || googlePayload.avatarUrl || null,
+          },
+          include: {
+            farmerProfile: true,
+            sellerProfile: true,
+            expertProfile: true,
+            deliveryProfile: true,
+            callCenterProfile: true,
+          },
+        });
+
+        await logAuditEvent({
+          userId: user.id,
+          action: 'LINK_GOOGLE_IDENTITY_SUCCESS',
+          entityName: 'User',
+          entityId: user.id,
+          changesJson: { email, googleId: googlePayload.googleId },
+          ipAddress,
+          userAgent,
+        });
+      }
+    }
+
+    // CASE 1: New Google user -> create FARM SEVA account
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          fullName: googlePayload.fullName,
+          email,
+          googleId: googlePayload.googleId,
+          authProvider: 'GOOGLE',
+          role: UserRole.FARMER,
+          status: UserStatus.ACTIVE,
+          emailVerified: true,
+          phoneVerified: false,
+          avatarUrl: googlePayload.avatarUrl || null,
+          farmerProfile: {
+            create: {},
+          },
+        },
+        include: {
+          farmerProfile: true,
+          sellerProfile: true,
+          expertProfile: true,
+          deliveryProfile: true,
+          callCenterProfile: true,
+        },
+      });
+
+      await logAuditEvent({
+        userId: user.id,
+        action: 'REGISTER_GOOGLE_USER_SUCCESS',
+        entityName: 'User',
+        entityId: user.id,
+        changesJson: { email, googleId: googlePayload.googleId, role: user.role },
+        ipAddress,
+        userAgent,
+      });
+    }
+
+    // Check account status
+    if (user.status === UserStatus.SUSPENDED) {
+      await logAuditEvent({
+        userId: user.id,
+        action: 'LOGIN_BLOCKED_SUSPENDED',
+        entityName: 'User',
+        entityId: user.id,
+        ipAddress,
+        userAgent,
+      });
+      throw { statusCode: 403, code: 'AUTH_ACCOUNT_SUSPENDED', message: 'Your account has been suspended' };
+    }
+
+    if (user.status === UserStatus.DEACTIVATED || user.status === UserStatus.REJECTED) {
+      throw { statusCode: 403, code: 'AUTH_ACCOUNT_INACTIVE', message: 'Account is inactive or rejected' };
+    }
+
+    // Generate FARM SEVA Access Token
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      phone: user.phone || '',
+      role: user.role,
+      status: user.status,
+    });
+
+    // Generate Refresh Token & hash it for database persistence
+    const rawRefreshToken = generateRefreshTokenString();
+    const tokenHash = hashToken(rawRefreshToken);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    // Update lastLoginAt timestamp
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    await logAuditEvent({
+      userId: user.id,
+      action: 'LOGIN_GOOGLE_SUCCESS',
+      entityName: 'User',
+      entityId: user.id,
+      ipAddress,
+      userAgent,
+    });
+
+    // Omit passwordHash from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
+      accessToken,
+      refreshToken: rawRefreshToken,
+    };
+  }
+
+  /**
    * User Login with OTP Service.
    */
   static async loginWithOtp(identifier: string, otp: string, ipAddress?: string, userAgent?: string) {

@@ -69,4 +69,11 @@ export const env = {
   PUSH_PROVIDER_MODE: process.env.FCM_SERVER_KEY ? 'CONFIGURED' : 'DEMO',
   PAYOUT_PROVIDER_MODE: process.env.PAYOUT_API_KEY ? 'CONFIGURED' : 'DEMO',
   KYC_PROVIDER_MODE: process.env.KYC_PROVIDER_KEY ? 'CONFIGURED' : 'DEMO',
+
+  // Google OAuth Credentials
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/api/v1/auth/google/callback',
+  GOOGLE_OAUTH_MODE: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? 'CONFIGURED' : 'NOT_CONFIGURED',
 };
+

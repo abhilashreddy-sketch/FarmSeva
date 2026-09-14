@@ -11,6 +11,7 @@ import { Input } from '../../components/ui/Input';
 import { OtpInput } from '../../components/ui/OtpInput';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { GoogleButton } from '../../components/ui/GoogleButton';
 
 type RoleType = 'FARMER' | 'SELLER' | 'AGRICULTURAL_EXPERT' | 'DELIVERY_PARTNER';
 
@@ -18,7 +19,7 @@ import { API_BASE_URL } from '@/config/api';
 
 export default function RegisterPage() {
   const { t } = useLanguage();
-  const { sendOtp, verifyOtp, setUser } = useAuth();
+  const { sendOtp, verifyOtp, setUser, initiateGoogleAuth } = useAuth();
   const router = useRouter();
 
   // Stepper State: 1 = Role, 2 = Basic Account, 3 = OTP Verification, 4 = Role Details, 5 = Complete
@@ -242,6 +243,20 @@ export default function RegisterPage() {
             <p className="text-xs font-semibold text-slate-500">
               Select your role on the platform to get started
             </p>
+          </div>
+
+          {/* GOOGLE QUICK SIGNUP */}
+          <div className="space-y-3 max-w-sm mx-auto">
+            <GoogleButton
+              onClick={() => initiateGoogleAuth()}
+              text="Continue with Google"
+            />
+            <div className="relative flex items-center justify-center my-3">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-xs font-bold text-slate-400 uppercase tracking-wider absolute">
+                OR SELECT ROLE FOR MANUAL REGISTRATION
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

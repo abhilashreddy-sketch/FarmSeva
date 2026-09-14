@@ -39,10 +39,13 @@ generator client {
 
 model User {
   id                 String       @id @default(uuid())
-  phone              String       @unique
+  phone              String?      @unique
   email              String?      @unique
   passwordHash       String?
   fullName           String
+  googleId           String?      @unique
+  authProvider       String       @default("LOCAL") // LOCAL, GOOGLE
+  avatarUrl          String?
   role               String       @default("FARMER")
   status             String       @default("ACTIVE")
   preferredLanguage  String       @default("en") // en, te, kn, hi, ta, mr

@@ -253,4 +253,78 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async initiateGoogleAuth(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { GoogleAuthProvider } = await import('../providers/google-auth-provider');
+      const state = (req.query.state as string) || undefined;
+      const redirectUri = (req.query.redirect_uri as string) || undefined;
+      const authUrl = GoogleAuthProvider.getAuthUrl(state, redirectUri);
+      
+      if (req.query.redirect === 'true') {
+        return res.redirect(authUrl);
+      }
+      
+      return sendSuccess(res, { url: authUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async handleGoogleCallback(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { GoogleAuthProvider } = await import('../providers/google-auth-provider');
+      const code = (req.query.code as string) || (req.body?.code as string);
+      const redirectUri = (req.query.redirect_uri as string) || (req.body?.redirect_uri as string);
+      
+      if (!code) {
+        return sendError(res, 'AUTH_MISSING_CODE', 'Authorization code is required', 400);
+      }
+
+      const googlePayload = await GoogleAuthProvider.verifyCode(code, redirectUri);
+      const result = await AuthService.loginWithGoogle(
+        googlePayload,
+        req.ip,
+        req.headers['user-agent']
+      );
+
+      if (req.method === 'GET') {
+        const frontendUrl = process.env.CORS_ORIGINS?.split(',')[0] || 'http://localhost:3000';
+        const redirectTarget = `${frontendUrl}/auth/google/callback?token=${encodeURIComponent(
+          result.accessToken
+        )}&refreshToken=${encodeURIComponent(result.refreshToken)}`;
+        return res.redirect(redirectTarget);
+      }
+
+      return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async loginWithGoogleToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { GoogleAuthProvider } = await import('../providers/google-auth-provider');
+      const { idToken, code, redirectUri } = req.body;
+      
+      let googlePayload;
+      if (code) {
+        googlePayload = await GoogleAuthProvider.verifyCode(code, redirectUri);
+      } else if (idToken) {
+        googlePayload = await GoogleAuthProvider.verifyIdToken(idToken, redirectUri);
+      } else {
+        return sendError(res, 'AUTH_MISSING_TOKEN', 'Either idToken or code must be provided', 400);
+      }
+
+      const result = await AuthService.loginWithGoogle(
+        googlePayload,
+        req.ip,
+        req.headers['user-agent']
+      );
+
+      return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
