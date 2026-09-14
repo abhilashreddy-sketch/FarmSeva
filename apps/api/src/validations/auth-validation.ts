@@ -5,6 +5,7 @@ const phoneRegex = /^[6-9]\d{9}$/;
 
 export const registerFarmerSchema = z.object({
   phone: z.string().regex(phoneRegex, 'Invalid Indian mobile number format (must be 10 digits starting with 6-9)'),
+  email: z.string().email('Invalid email address').optional(),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   preferredLanguage: z.enum(['en', 'te', 'kn', 'hi', 'ta', 'mr']).default('en'),
@@ -46,6 +47,7 @@ export const registerExpertSchema = z.object({
 
 export const registerDeliverySchema = z.object({
   phone: z.string().regex(phoneRegex, 'Invalid Indian mobile number format'),
+  email: z.string().email('Invalid email address').optional(),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   preferredLanguage: z.enum(['en', 'te', 'kn', 'hi', 'ta', 'mr']).default('en'),

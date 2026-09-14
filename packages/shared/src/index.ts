@@ -20,13 +20,17 @@ export enum UserStatus {
 }
 
 export const SUPPORTED_LOCALES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'te', name: 'Telugu', nativeName: 'తెలుగు' },
-  { code: 'kn', name: 'Kannada', nativeName: 'కన్నడ / ಕನ್ನಡ' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-  { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்' },
-  { code: 'mr', name: 'Marathi', nativeName: 'मराठी' },
+  { code: 'en', name: 'English', nativeName: 'English', ttsCode: 'en-IN' },
+  { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', ttsCode: 'te-IN' },
+  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', ttsCode: 'hi-IN' },
+  { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', ttsCode: 'kn-IN' },
+  { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', ttsCode: 'ta-IN' },
+  { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം', ttsCode: 'ml-IN' },
+  { code: 'mr', name: 'Marathi', nativeName: 'मराठी', ttsCode: 'mr-IN' },
+  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', ttsCode: 'bn-IN' },
 ] as const;
+
+export type SupportedLanguageCode = typeof SUPPORTED_LOCALES[number]['code'];
 
 export const REGULATORY_COMPLIANCE_RULES = {
   SAFETY_DISCLAIMER_TEXT:

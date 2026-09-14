@@ -41,7 +41,6 @@ export default function RegisterPage() {
   const [otpCode, setOtpCode] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const [demoOtpNotice, setDemoOtpNotice] = useState<string | null>(null);
 
   // Role Specific Fields
   // Farmer
@@ -108,9 +107,6 @@ export default function RegisterPage() {
 
     if (result.success) {
       setOtpSent(true);
-      if (result.demoOtp) {
-        setDemoOtpNotice(`Demo OTP Code: ${result.demoOtp}`);
-      }
     } else {
       setErrorMsg(result.error || 'Failed to send OTP code.');
     }
@@ -504,11 +500,7 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {demoOtpNotice && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {demoOtpNotice}
-            </div>
-          )}
+
 
           {!otpSent ? (
             <Button

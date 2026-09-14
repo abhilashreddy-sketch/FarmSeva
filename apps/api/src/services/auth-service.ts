@@ -17,6 +17,7 @@ export class AuthService {
    */
   static async registerFarmer(data: {
     phone: string;
+    email?: string;
     fullName: string;
     password: string;
     preferredLanguage?: string;
@@ -24,9 +25,16 @@ export class AuthService {
     totalLandAcres?: number;
     primaryWaterSource?: string;
   }) {
-    const existingUser = await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (existingUser) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
+    }
+
+    if (data.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingEmail) {
+        throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
+      }
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -34,6 +42,7 @@ export class AuthService {
     const user = await prisma.user.create({
       data: {
         phone: data.phone,
+        email: data.email || null,
         passwordHash,
         fullName: data.fullName,
         role: UserRole.FARMER,
@@ -55,10 +64,11 @@ export class AuthService {
       action: 'REGISTER_FARMER',
       entityName: 'User',
       entityId: user.id,
-      changesJson: { phone: user.phone, role: user.role },
+      changesJson: { phone: user.phone, email: user.email, role: user.role },
     });
 
-    return user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   /**
@@ -82,9 +92,16 @@ export class AuthService {
     pincode: string;
     contactPhone: string;
   }) {
-    const existingUser = await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (existingUser) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
+    }
+
+    if (data.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingEmail) {
+        throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
+      }
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -130,7 +147,8 @@ export class AuthService {
       changesJson: { businessName: data.businessName, license: data.pesticideLicenseNo },
     });
 
-    return user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   /**
@@ -147,9 +165,16 @@ export class AuthService {
     certificationNo?: string;
     yearsExperience: number;
   }) {
-    const existingUser = await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (existingUser) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
+    }
+
+    if (data.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingEmail) {
+        throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
+      }
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -183,7 +208,8 @@ export class AuthService {
       changesJson: { specialization: data.specialization },
     });
 
-    return user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   /**
@@ -191,6 +217,7 @@ export class AuthService {
    */
   static async registerDeliveryPartner(data: {
     phone: string;
+    email?: string;
     fullName: string;
     password: string;
     preferredLanguage?: string;
@@ -198,9 +225,16 @@ export class AuthService {
     vehicleNumber: string;
     activeDistrict: string;
   }) {
-    const existingUser = await prisma.user.findUnique({ where: { phone: data.phone } });
-    if (existingUser) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
+    }
+
+    if (data.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+      if (existingEmail) {
+        throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
+      }
     }
 
     const passwordHash = await hashPassword(data.password);
@@ -208,6 +242,7 @@ export class AuthService {
     const user = await prisma.user.create({
       data: {
         phone: data.phone,
+        email: data.email || null,
         passwordHash,
         fullName: data.fullName,
         role: UserRole.DELIVERY_PARTNER,
@@ -231,7 +266,8 @@ export class AuthService {
       entityId: user.id,
     });
 
-    return user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   /**

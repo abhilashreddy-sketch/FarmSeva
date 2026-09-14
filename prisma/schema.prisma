@@ -72,6 +72,7 @@ model User {
   refreshTokens      RefreshToken[]
   resetTokens        PasswordResetToken[]
   otpRecords         OtpRecord[]
+  cropDiagnoses      CropDiagnosis[]
 
   @@index([phone])
   @@index([role])
@@ -1017,3 +1018,54 @@ model KycDocument {
 
   @@index([kycRecordId])
 }
+
+// ----------------------------------------------------
+// AI CROP DOCTOR DIAGNOSIS
+// ----------------------------------------------------
+
+model CropDiagnosis {
+  id                     String               @id @default(uuid())
+  userId                 String
+  user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cropName               String
+  cropConfidence         Float                @default(0)
+  primaryProblem         String
+  problemType            String               // DISEASE | PEST | NUTRIENT_DEFICIENCY | ENVIRONMENTAL | PHYSICAL_DAMAGE | UNKNOWN
+  confidence             Float                @default(0)
+  observationsJson       String               // JSON string of string[]
+  possibleCausesJson     String               // JSON string of string[]
+  recommendedActionsJson  String               // JSON string of string[]
+  preventionJson         String               // JSON string of string[]
+  medicineGuidanceJson   String               // JSON string of string[]
+  selectedLanguage       String               @default("en")
+  imageQualityJson       String               // JSON string { acceptable: boolean, reason: string }
+  needsExpert            Boolean              @default(false)
+  expertReason           String?
+  aiProvider             String               @default("GEMINI_VISION")
+  aiModel                String               @default("gemini-3.8-flash")
+  audioUrl               String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  images                 CropDiagnosisImage[]
+
+  @@index([userId])
+  @@index([cropName])
+  @@index([problemType])
+  @@index([needsExpert])
+  @@index([createdAt])
+}
+
+model CropDiagnosisImage {
+  id               String        @id @default(uuid())
+  cropDiagnosisId  String
+  cropDiagnosis    CropDiagnosis @relation(fields: [cropDiagnosisId], references: [id], onDelete: Cascade)
+  imageUrl         String
+  fileType         String?
+  fileSize         Int?
+  displayOrder     Int           @default(0)
+  uploadedAt       DateTime      @default(now())
+
+  @@index([cropDiagnosisId])
+}
+

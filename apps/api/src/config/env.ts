@@ -14,7 +14,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dyzcxyrbfdkhmxudqehf.s
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const CORS_ORIGINS = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001';
+const CORS_ORIGINS = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,https://farm-seva-web.vercel.app';
 
 // Strict Startup Validation for Production
 if (NODE_ENV === 'production') {

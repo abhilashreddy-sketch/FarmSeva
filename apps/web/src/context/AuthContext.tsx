@@ -20,7 +20,7 @@ interface AuthContextType {
   login: (phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginPhone: (phone: string, password?: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
   loginEmail: (email: string, password?: string, otp?: string) => Promise<{ success: boolean; error?: string }>;
-  sendOtp: (identifier: string, purpose?: string) => Promise<{ success: boolean; demoOtp?: string; error?: string }>;
+  sendOtp: (identifier: string, purpose?: string) => Promise<{ success: boolean; error?: string }>;
   verifyOtp: (identifier: string, otp: string, purpose?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       handleAuthSuccess(data.data.user, data.data.accessToken);
       return { success: true };
     } catch (e: any) {
-      return { success: false, error: 'Network error connecting to Farm Seva API' };
+      return { success: false, error: 'Unable to connect to FARM SEVA. Please try again.' };
     }
   };
 
@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       handleAuthSuccess(data.data.user, data.data.accessToken);
       return { success: true };
     } catch (e: any) {
-      return { success: false, error: 'Network error connecting to Farm Seva API' };
+      return { success: false, error: 'Unable to connect to FARM SEVA. Please try again.' };
     }
   };
 
@@ -145,13 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const data = await res.json();
       if (!data.success) {
-        return { success: false, error: data.error?.message || 'Email login failed' };
+        return { success: false, error: data.error?.message || 'Invalid email or password' };
       }
 
       handleAuthSuccess(data.data.user, data.data.accessToken);
       return { success: true };
     } catch (e: any) {
-      return { success: false, error: 'Network error connecting to Farm Seva API' };
+      return { success: false, error: 'Unable to connect to FARM SEVA. Please try again.' };
     }
   };
 
@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error?.message || 'Failed to send OTP' };
       }
 
-      return { success: true, demoOtp: data.data?.demoOtp };
+      return { success: true };
     } catch (e: any) {
       return { success: false, error: 'Network error sending OTP' };
     }

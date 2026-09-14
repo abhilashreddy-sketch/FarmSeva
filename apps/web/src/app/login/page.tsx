@@ -2,14 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Phone, Mail, Lock, Eye, EyeOff, KeyRound, Sparkles, ShieldCheck, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Phone, Mail, Lock, Eye, EyeOff, KeyRound, Smartphone } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { OtpInput } from '../../components/ui/OtpInput';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -27,7 +26,6 @@ export default function LoginPage() {
 
   // States
   const [otpSent, setOtpSent] = useState(false);
-  const [demoOtpNotice, setDemoOtpNotice] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -46,9 +44,6 @@ export default function LoginPage() {
 
     if (result.success) {
       setOtpSent(true);
-      if (result.demoOtp) {
-        setDemoOtpNotice(`Demo OTP sent: ${result.demoOtp}`);
-      }
     } else {
       setErrorMsg(result.error || 'Failed to send OTP');
     }
@@ -110,13 +105,6 @@ export default function LoginPage() {
     if (!result.success) {
       setErrorMsg(result.error || 'Authentication failed');
     }
-  };
-
-  const fillDemoAccount = (demoPhone: string) => {
-    setActiveTab('PHONE');
-    setAuthMethod('PASSWORD');
-    setPhone(demoPhone);
-    setPassword('DemoPassword123!');
   };
 
   return (
@@ -208,12 +196,6 @@ export default function LoginPage() {
         {errorMsg && (
           <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl text-xs font-bold flex items-center gap-2">
             ⚠️ {errorMsg}
-          </div>
-        )}
-
-        {demoOtpNotice && authMethod === 'OTP' && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {demoOtpNotice}
           </div>
         )}
 
@@ -317,50 +299,6 @@ export default function LoginPage() {
               Create New Account
             </Link>
           </p>
-        </div>
-      </Card>
-
-      {/* DEMO / DEVELOPMENT TESTING ACCOUNTS QUICK-FILL */}
-      <Card padding="sm" className="bg-amber-50/70 border border-amber-200 space-y-3">
-        <div className="flex items-center justify-between">
-          <Badge variant="harvest" size="sm">
-            <Sparkles className="w-3 h-3 mr-1" /> DEMO SEED ACCOUNTS
-          </Badge>
-          <span className="text-[10px] text-amber-800 font-bold">Click to Autofill</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => fillDemoAccount('9876543210')}
-            className="bg-white border border-amber-300/80 p-2 rounded-xl text-left font-bold text-slate-800 hover:bg-amber-100/50 transition shadow-xs"
-          >
-            🚜 Farmer Demo
-            <span className="block text-[10px] text-slate-500 font-normal">9876543210</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount('9123456780')}
-            className="bg-white border border-amber-300/80 p-2 rounded-xl text-left font-bold text-slate-800 hover:bg-amber-100/50 transition shadow-xs"
-          >
-            🏪 Seller Demo
-            <span className="block text-[10px] text-slate-500 font-normal">9123456780</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount('9888877770')}
-            className="bg-white border border-amber-300/80 p-2 rounded-xl text-left font-bold text-slate-800 hover:bg-amber-100/50 transition shadow-xs"
-          >
-            🔬 Expert Demo
-            <span className="block text-[10px] text-slate-500 font-normal">9888877770</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => fillDemoAccount('9777766660')}
-            className="bg-white border border-amber-300/80 p-2 rounded-xl text-left font-bold text-slate-800 hover:bg-amber-100/50 transition shadow-xs"
-          >
-            🚚 Delivery Demo
-            <span className="block text-[10px] text-slate-500 font-normal">9777766660</span>
-          </button>
         </div>
       </Card>
     </div>

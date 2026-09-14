@@ -1,6 +1,6 @@
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { generateNumericOtp } from '../utils/auth-utils';
 import { ApiError } from '../middleware/error-middleware';
 import { Logger } from '../utils/logger';
 import { SmsProviderAdapter } from '../adapters/sms-provider-adapter';
@@ -9,13 +9,34 @@ const prisma = new PrismaClient();
 
 export class OtpService {
   /**
-   * Send/Generate a 6-digit OTP for phone or email.
+   * Validates Indian mobile phone numbers (10 digits starting with 6-9, optional +91 prefix).
+   */
+  static validateIndianPhone(phone: string): string {
+    const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
+    const tenDigit = cleaned.startsWith('91') && cleaned.length === 12 ? cleaned.slice(2) : cleaned;
+
+    if (!/^[6-9]\d{9}$/.test(tenDigit)) {
+      throw new ApiError('INVALID_PHONE', 'Please enter a valid 10-digit Indian mobile number', 400);
+    }
+    return tenDigit;
+  }
+
+  /**
+   * Send/Generate a cryptographically secure 6-digit OTP for phone or email.
    * Enforces 60-second resend cooldown and 5-minute expiry.
    */
   static async sendOtp(identifier: string, purpose: string = 'LOGIN', userId?: string) {
-    const cleanIdentifier = identifier.trim().toLowerCase();
+    const rawIdentifier = identifier.trim();
+    const isEmail = rawIdentifier.includes('@');
+    
+    let cleanIdentifier: string;
+    if (isEmail) {
+      cleanIdentifier = rawIdentifier.toLowerCase();
+    } else {
+      cleanIdentifier = this.validateIndianPhone(rawIdentifier);
+    }
 
-    // Check for recent OTP within last 60 seconds (rate limiting / cooldown)
+    // Check for recent OTP within last 60 seconds (cooldown)
     const recentOtp = await prisma.otpRecord.findFirst({
       where: {
         identifier: cleanIdentifier,
@@ -28,15 +49,12 @@ export class OtpService {
       throw new ApiError('OTP_RATE_LIMIT', 'Please wait 60 seconds before requesting another OTP', 429);
     }
 
-    // Generate 6-digit numeric OTP (default to '123456' for test phone numbers in dev mode)
-    const isTestMode = process.env.NODE_ENV !== 'production';
-    const isDemoPhone = ['9876543210', '9123456780', '9888877770', '9777766660', '9999999999', '9988776655'].includes(cleanIdentifier);
-    
-    const rawOtp = (isTestMode && isDemoPhone) ? '123456' : generateNumericOtp();
+    // Cryptographically secure 6-digit numeric OTP
+    const rawOtp = crypto.randomInt(100000, 1000000).toString();
     const otpHash = await bcrypt.hash(rawOtp, 8);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    // Store in DB
+    // Store secure hash in DB
     await prisma.otpRecord.create({
       data: {
         userId: userId || null,
@@ -47,15 +65,16 @@ export class OtpService {
       },
     });
 
-    Logger.info(`OTP generated for ${cleanIdentifier} [Purpose: ${purpose}]`);
+    Logger.info(`Secure OTP generated for ${cleanIdentifier} [Purpose: ${purpose}]`);
 
-    // Delegate live SMS sending to SmsProviderAdapter when identifier is a phone number
+    // Dispatch via external provider
     let smsStatus: string | undefined = undefined;
-    const isEmail = cleanIdentifier.includes('@');
     if (!isEmail) {
       const smsResult = await SmsProviderAdapter.sendSms(
         cleanIdentifier,
-        `Your FARM SEVA verification code is ${rawOtp}. Valid for 5 minutes.`
+        `Your FARM SEVA verification code is ${rawOtp}. Valid for 5 minutes.`,
+        rawOtp,
+        purpose
       );
       smsStatus = smsResult.status;
     }
@@ -64,17 +83,23 @@ export class OtpService {
       message: `OTP sent successfully to ${cleanIdentifier}`,
       expiresInSeconds: 300,
       smsStatus,
-      // Include test OTP in response ONLY during dev/demo mode for convenience
-      demoOtp: isTestMode ? rawOtp : undefined,
     };
   }
 
   /**
    * Verify an incoming OTP.
-   * Enforces max 3 attempts per OTP record.
+   * Enforces max 3 attempts per OTP record and invalidates single-use token.
    */
   static async verifyOtp(identifier: string, rawOtp: string, purpose: string = 'LOGIN') {
-    const cleanIdentifier = identifier.trim().toLowerCase();
+    const rawIdentifier = identifier.trim();
+    const isEmail = rawIdentifier.includes('@');
+
+    let cleanIdentifier: string;
+    if (isEmail) {
+      cleanIdentifier = rawIdentifier.toLowerCase();
+    } else {
+      cleanIdentifier = this.validateIndianPhone(rawIdentifier);
+    }
 
     const activeOtpRecord = await prisma.otpRecord.findFirst({
       where: {
@@ -91,7 +116,7 @@ export class OtpService {
     }
 
     if (activeOtpRecord.attempts >= activeOtpRecord.maxAttempts) {
-      // Invalidate record
+      // Invalidate record due to max attempts exceeded
       await prisma.otpRecord.update({
         where: { id: activeOtpRecord.id },
         data: { isUsed: true },
@@ -102,14 +127,26 @@ export class OtpService {
     const isMatch = await bcrypt.compare(rawOtp, activeOtpRecord.otpHash);
 
     if (!isMatch) {
+      const updatedAttempts = activeOtpRecord.attempts + 1;
+      const isNowLockedOut = updatedAttempts >= activeOtpRecord.maxAttempts;
+
       await prisma.otpRecord.update({
         where: { id: activeOtpRecord.id },
-        data: { attempts: activeOtpRecord.attempts + 1 },
+        data: {
+          attempts: updatedAttempts,
+          isUsed: isNowLockedOut ? true : activeOtpRecord.isUsed,
+        },
       });
-      throw new ApiError('INVALID_OTP', `Incorrect OTP entered. ${activeOtpRecord.maxAttempts - (activeOtpRecord.attempts + 1)} attempts remaining.`, 400);
+
+      const attemptsRemaining = activeOtpRecord.maxAttempts - updatedAttempts;
+      if (isNowLockedOut) {
+        throw new ApiError('OTP_MAX_ATTEMPTS', 'Maximum OTP verification attempts exceeded. Please request a new OTP.', 400);
+      }
+
+      throw new ApiError('INVALID_OTP', `Incorrect OTP entered. ${attemptsRemaining} attempt${attemptsRemaining === 1 ? '' : 's'} remaining.`, 400);
     }
 
-    // Mark as used
+    // Single-use invalidation
     await prisma.otpRecord.update({
       where: { id: activeOtpRecord.id },
       data: { isUsed: true },

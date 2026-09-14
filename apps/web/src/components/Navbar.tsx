@@ -93,6 +93,14 @@ export default function Navbar() {
                     My Crops
                   </Link>
                   <Link
+                    href="/crop-doctor"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/crop-doctor') ? 'bg-amber-400 text-emerald-950 font-black shadow' : 'bg-emerald-800/80 hover:bg-emerald-800 text-amber-300'
+                    }`}
+                  >
+                    🌱 AI Crop Doctor
+                  </Link>
+                  <Link
                     href="/farmer/crop-problems"
                     className={`px-3 py-2 rounded-xl transition ${
                       isActive('/farmer/crop-problems') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'

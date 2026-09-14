@@ -27,7 +27,7 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     await prisma.passwordResetToken.deleteMany({});
     await prisma.user.deleteMany({
       where: {
-        phone: { in: ['9999911111', farmerPhone, sellerPhone, suspendedPhone, '9888800004', '9888800005', '9666611111'] },
+        phone: { in: ['9999911111', farmerPhone, sellerPhone, suspendedPhone, '9888800004', '9888800005', '9888800888', '9888800999', '9666611111'] },
       },
     });
 
@@ -56,10 +56,11 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     await prisma.$disconnect();
   });
 
-  // 1. FARMER REGISTRATION
-  test('1. Register new Farmer (Status default ACTIVE)', async () => {
+  // 1. FARMER REGISTRATION (WITH REAL EMAIL & PASSWORD HASHING)
+  test('1. Register new Farmer with real Email and Password (Status default ACTIVE)', async () => {
     const res = await request(app).post('/api/v1/auth/register/farmer').send({
       phone: farmerPhone,
+      email: 'raju.farmer@farmseva.com',
       fullName: 'Raju Farmer',
       password: 'FarmerPassword123!',
       preferredLanguage: 'te',
@@ -70,14 +71,36 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
     expect(res.body.data.role).toBe('FARMER');
+    expect(res.body.data.email).toBe('raju.farmer@farmseva.com');
     expect(res.body.data.status).toBe('ACTIVE');
+    expect(res.body.data.passwordHash).toBeUndefined(); // Password hash must NEVER be returned
     farmerUserId = res.body.data.id;
+
+    // Verify Password Hashing in DB
+    const dbUser = await prisma.user.findUnique({ where: { id: farmerUserId } });
+    expect(dbUser).toBeDefined();
+    expect(dbUser?.passwordHash).not.toBe('FarmerPassword123!');
+    expect(dbUser?.passwordHash?.startsWith('$2')).toBe(true); // Valid bcrypt hash
+  });
+
+  // 1b. DUPLICATE EMAIL REGISTRATION REJECTED
+  test('1b. Registration with duplicate email is rejected with 409 Conflict', async () => {
+    const res = await request(app).post('/api/v1/auth/register/farmer').send({
+      phone: '9888800888',
+      email: 'raju.farmer@farmseva.com',
+      fullName: 'Duplicate Email Farmer',
+      password: 'FarmerPassword123!',
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('AUTH_EMAIL_EXISTS');
   });
 
   // 2. SELLER REGISTRATION
   test('2. Register new Seller (Status default PENDING_VERIFICATION)', async () => {
     const res = await request(app).post('/api/v1/auth/register/seller').send({
       phone: sellerPhone,
+      email: 'suresh.dealer@farmseva.com',
       fullName: 'Suresh Dealer',
       password: 'SellerPassword123!',
       businessName: 'Suresh Krishi Kendra',
@@ -95,6 +118,7 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.user.role).toBe('SELLER');
     expect(res.body.data.user.status).toBe('PENDING_VERIFICATION');
+    expect(res.body.data.user.passwordHash).toBeUndefined();
     sellerUserId = res.body.data.user.id;
   });
 
@@ -102,6 +126,7 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
   test('3. Register new Expert (Status default PENDING_VERIFICATION)', async () => {
     const res = await request(app).post('/api/v1/auth/register/expert').send({
       phone: '9888800004',
+      email: 'anita.expert@farmseva.com',
       fullName: 'Dr. Anita Agronomist',
       password: 'ExpertPassword123!',
       specialization: 'Entomology',
@@ -118,6 +143,7 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
   test('4. Register Delivery Partner (Status default ACTIVE)', async () => {
     const res = await request(app).post('/api/v1/auth/register/delivery').send({
       phone: '9888800005',
+      email: 'vikram.delivery@farmseva.com',
       fullName: 'Vikram Delivery',
       password: 'DeliveryPassword123!',
       vehicleType: 'Motorcycle',
@@ -128,6 +154,41 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     expect(res.status).toBe(201);
     expect(res.body.data.role).toBe('DELIVERY_PARTNER');
     expect(res.body.data.status).toBe('ACTIVE');
+  });
+
+  // 5. LOGIN WITH EMAIL & PASSWORD
+  test('5a. Login with valid Email and Password succeeds', async () => {
+    const res = await request(app).post('/api/v1/auth/login/email').send({
+      email: 'raju.farmer@farmseva.com',
+      password: 'FarmerPassword123!',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.accessToken).toBeDefined();
+    expect(res.body.data.refreshToken).toBeDefined();
+    expect(res.body.data.user.email).toBe('raju.farmer@farmseva.com');
+    expect(res.body.data.user.passwordHash).toBeUndefined();
+  });
+
+  test('5b. Login with wrong password returns 401 Invalid email or password', async () => {
+    const res = await request(app).post('/api/v1/auth/login/email').send({
+      email: 'raju.farmer@farmseva.com',
+      password: 'WrongPassword123!',
+    });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('AUTH_INVALID_CREDENTIALS');
+  });
+
+  test('5c. Login with unknown email returns 401 Invalid email or password', async () => {
+    const res = await request(app).post('/api/v1/auth/login/email').send({
+      email: 'nonexistent.email@farmseva.com',
+      password: 'SomePassword123!',
+    });
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('AUTH_INVALID_CREDENTIALS');
   });
 
   // 5. CALL CENTER AGENT CREATION (ADMIN RESTRICTED)
@@ -328,4 +389,65 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
 
     expect(logs.length).toBeGreaterThan(0);
   });
+
+  // 16. SECURE OTP GENERATION, RATE-LIMITING, LOCKOUT, AND SINGLE-USE INVALIDATION
+  test('16. Secure OTP generation, 60s rate limit, max 3 attempts lockout, and single-use invalidation', async () => {
+    const testPhone = '9876543210';
+
+    // 16a. Send OTP
+    const sendRes = await request(app).post('/api/v1/auth/send-otp').send({
+      identifier: testPhone,
+      purpose: 'LOGIN',
+    });
+    expect(sendRes.status).toBe(200);
+    expect(sendRes.body.success).toBe(true);
+    expect(sendRes.body.data.demoOtp).toBeUndefined(); // Ensure no raw OTP leaked in response
+
+    // 16b. Resend within 60s should be rate-limited (429)
+    const rateLimitRes = await request(app).post('/api/v1/auth/send-otp').send({
+      identifier: testPhone,
+      purpose: 'LOGIN',
+    });
+    expect(rateLimitRes.status).toBe(429);
+    expect(rateLimitRes.body.error.code).toBe('OTP_RATE_LIMIT');
+
+    // Fetch active OTP record from DB to test verification and lockout
+    const activeOtpRecord = await prisma.otpRecord.findFirst({
+      where: { identifier: testPhone, purpose: 'LOGIN', isUsed: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(activeOtpRecord).toBeDefined();
+
+    // 16c. Wrong OTP attempt 1
+    const wrong1Res = await request(app).post('/api/v1/auth/verify-otp').send({
+      identifier: testPhone,
+      otp: '000000',
+      purpose: 'LOGIN',
+    });
+    expect(wrong1Res.status).toBe(400);
+
+    // 16d. Wrong OTP attempt 2
+    const wrong2Res = await request(app).post('/api/v1/auth/verify-otp').send({
+      identifier: testPhone,
+      otp: '111111',
+      purpose: 'LOGIN',
+    });
+    expect(wrong2Res.status).toBe(400);
+
+    // 16e. Wrong OTP attempt 3 -> Triggers lockout
+    const wrong3Res = await request(app).post('/api/v1/auth/verify-otp').send({
+      identifier: testPhone,
+      otp: '222222',
+      purpose: 'LOGIN',
+    });
+    expect(wrong3Res.status).toBe(400);
+    expect(wrong3Res.body.error.code).toBe('OTP_MAX_ATTEMPTS');
+
+    // Verify record is now invalidated in DB
+    const lockedRecord = await prisma.otpRecord.findUnique({
+      where: { id: activeOtpRecord!.id },
+    });
+    expect(lockedRecord?.isUsed).toBe(true);
+  });
 });
+
