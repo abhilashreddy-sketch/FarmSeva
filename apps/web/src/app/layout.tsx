@@ -5,6 +5,7 @@ import { AuthProvider } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { FloatingCropDoctor } from '../components/FloatingCropDoctor';
+import { MobileBottomNav } from '../components/MobileBottomNav';
 
 export const metadata = {
   title: 'FARM SEVA - Multi-Channel Agricultural Marketplace & Crop Advisory',
@@ -14,7 +15,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+      <body className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased selection:bg-emerald-500 selection:text-white pb-14 md:pb-0">
         <AuthProvider>
           <LanguageProvider>
             <Navbar />
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
             <Footer />
             <FloatingCropDoctor />
+            <MobileBottomNav />
           </LanguageProvider>
         </AuthProvider>
       </body>
