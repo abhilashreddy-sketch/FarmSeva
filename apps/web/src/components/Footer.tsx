@@ -18,8 +18,8 @@ export const Footer: React.FC = () => {
               <Sprout className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-sm">Certified Agronomists</h4>
-              <p className="text-xs text-slate-400">Direct crop diagnostics & guidance</p>
+              <h4 className="font-extrabold text-white text-sm">{t('cropDoctor.consultExpert', 'Certified Agronomists')}</h4>
+              <p className="text-xs text-slate-400">{t('cropDoctor.subtitle', 'Direct crop diagnostics & guidance')}</p>
             </div>
           </div>
 
@@ -28,8 +28,8 @@ export const Footer: React.FC = () => {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-sm">Genuine Agri Inputs</h4>
-              <p className="text-xs text-slate-400">100% verified dealer supply</p>
+              <h4 className="font-extrabold text-white text-sm">{t('marketplace.cibCertified', 'Genuine Agri Inputs')}</h4>
+              <p className="text-xs text-slate-400">{t('marketplace.cibCertified', '100% verified dealer supply')}</p>
             </div>
           </div>
 
@@ -38,8 +38,8 @@ export const Footer: React.FC = () => {
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-sm">District Delivery</h4>
-              <p className="text-xs text-slate-400">Farm-gate OTP drop-off</p>
+              <h4 className="font-extrabold text-white text-sm">{t('delivery.dashboard', 'District Delivery')}</h4>
+              <p className="text-xs text-slate-400">{t('orders.trackOrder', 'Farm-gate OTP drop-off')}</p>
             </div>
           </div>
 
@@ -48,8 +48,8 @@ export const Footer: React.FC = () => {
               <Headphones className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-extrabold text-white text-sm">IVR & Call-Center</h4>
-              <p className="text-xs text-slate-400">Voice support for low literacy</p>
+              <h4 className="font-extrabold text-white text-sm">{t('navbar.callCenter', 'IVR & Call-Center')}</h4>
+              <p className="text-xs text-slate-400">{t('app.callSupport', 'Voice support for low literacy')}</p>
             </div>
           </div>
         </div>
@@ -61,62 +61,50 @@ export const Footer: React.FC = () => {
               <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center font-black text-xl text-white shadow">
                 🌾
               </div>
-              <span className="font-black text-xl text-white tracking-tight">FARM SEVA</span>
+              <span className="font-black text-xl text-white tracking-tight">{t('app.name', 'FARM SEVA')}</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              India's Multi-Channel Agricultural Marketplace & Certified Crop Diagnostics Platform. Serving rural farmers across districts.
+              {t('app.footerDesc', 'India Multi-Channel Agricultural Marketplace & Certified Crop Diagnostics Platform.')}
             </p>
-            <div className="pt-2">
-              <span className="inline-block bg-emerald-950 text-emerald-400 border border-emerald-800 text-[11px] font-bold px-3 py-1 rounded-full">
-                🇮🇳 Empowering Indian Farmers
-              </span>
-            </div>
           </div>
 
           <div className="space-y-3">
-            <h5 className="font-black text-white text-sm uppercase tracking-wider">Marketplace</h5>
+            <h5 className="font-black text-white text-sm uppercase tracking-wider">{t('navbar.marketplace', 'Marketplace')}</h5>
             <ul className="space-y-2 text-xs font-semibold">
-              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">Seeds & Varieties</Link></li>
-              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">Crop Protection & Fungicides</Link></li>
-              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">Bio-Fertilizers & Micro-Nutrients</Link></li>
-              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">Farm Tools & Equipment</Link></li>
+              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">{t('marketplace.categories', 'Seeds & Varieties')}</Link></li>
+              <li><Link href="/farmer/marketplace" className="hover:text-emerald-400 transition">{t('marketplace.allInputs', 'Crop Protection & Fungicides')}</Link></li>
             </ul>
           </div>
 
           <div className="space-y-3">
-            <h5 className="font-black text-white text-sm uppercase tracking-wider">Services</h5>
+            <h5 className="font-black text-white text-sm uppercase tracking-wider">{t('footer.quickLinks', 'Quick Links')}</h5>
             <ul className="space-y-2 text-xs font-semibold">
-              <li><Link href="/register?role=FARMER" className="hover:text-emerald-400 transition">Farmer Registration</Link></li>
-              <li><Link href="/register?role=SELLER" className="hover:text-emerald-400 transition">Agri Dealer Shop Onboarding</Link></li>
-              <li><Link href="/register?role=EXPERT" className="hover:text-emerald-400 transition">Certified Expert Panel</Link></li>
-              <li><Link href="/register?role=DELIVERY" className="hover:text-emerald-400 transition">Delivery Partner Network</Link></li>
+              <li><Link href="/register?role=FARMER" className="hover:text-emerald-400 transition">{t('auth.registerAsFarmer', 'Farmer Registration')}</Link></li>
+              <li><Link href="/register?role=SELLER" className="hover:text-emerald-400 transition">{t('auth.registerAsSeller', 'Agri Dealer Shop Onboarding')}</Link></li>
             </ul>
           </div>
 
           <div className="space-y-3 bg-slate-800/80 p-5 rounded-2xl border border-slate-700">
             <h5 className="font-black text-amber-400 text-xs uppercase tracking-wider flex items-center gap-1.5">
-              <PhoneCall className="w-4 h-4" /> Toll-Free Helpline
+              <PhoneCall className="w-4 h-4" /> {t('footer.helpSupport', 'Toll-Free Helpline')}
             </h5>
-            <p className="text-xs text-slate-300">Call to order inputs or report crop pests without internet:</p>
+            <p className="text-xs text-slate-300">{t('app.callSupport', 'Call to order inputs or report crop pests')}</p>
             <a
               href="tel:180032767382"
               className="block bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black text-center text-sm py-2.5 rounded-xl shadow transition"
             >
               1800-FARM-SEVA
             </a>
-            <p className="text-[10px] text-slate-400 text-center">Available in Telugu, Kannada, Hindi, Tamil & Marathi</p>
           </div>
         </div>
 
         {/* Bottom Copyright */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} FARM SEVA Agricultural Technologies. All rights reserved.</p>
+          <p>{t('app.copyright', '© 2026 FARM SEVA. All rights reserved.')}</p>
           <div className="flex items-center gap-4 font-medium">
-            <span>Privacy Policy</span>
+            <span>{t('footer.privacyPolicy', 'Privacy Policy')}</span>
             <span>•</span>
-            <span>Terms of Service</span>
-            <span>•</span>
-            <span>Regulatory Compliance</span>
+            <span>{t('footer.termsService', 'Terms of Service')}</span>
           </div>
         </div>
       </div>

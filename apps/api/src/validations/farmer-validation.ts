@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const updateFarmerProfileSchema = z.object({
   fullName: z.string().min(2).optional(),
-  preferredLanguage: z.enum(['en', 'te', 'kn', 'hi', 'ta', 'mr']).optional(),
+  preferredLanguage: z.enum(['en', 'te', 'hi', 'kn', 'ta', 'ml', 'mr', 'bn']).optional(),
   village: z.string().optional(),
   district: z.string().optional(),
   state: z.string().optional(),

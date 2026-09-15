@@ -14,9 +14,7 @@ import {
   User,
   PhoneCall,
   Sparkles,
-  ChevronRight,
   Sun,
-  CloudRain,
   ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -79,7 +77,7 @@ export default function FarmerDashboard() {
   };
 
   if (isLoading || !user) {
-    return <div className="p-8 text-center font-bold text-slate-500">Loading Farmer Workspace...</div>;
+    return <div className="p-8 text-center font-bold text-slate-500">{t('common.loading', 'Loading Workspace...')}</div>;
   }
 
   const completionPct = calculateProfileCompletion();
@@ -91,10 +89,10 @@ export default function FarmerDashboard() {
         <div className="flex items-center justify-between flex-wrap gap-4 relative z-10">
           <div className="space-y-2">
             <Badge variant="harvest" size="md">
-              <Sparkles className="w-3.5 h-3.5 mr-1" /> FARMER DASHBOARD (రైతు ఖాతా)
+              <Sparkles className="w-3.5 h-3.5 mr-1" /> {t('auth.farmerRole', 'FARMER WORKSPACE')}
             </Badge>
             <h1 className="text-2xl md:text-4xl font-black tracking-tight">
-              Welcome back, {user.fullName}!
+              {t('dashboard.welcome', 'Welcome back')}, {user.fullName}!
             </h1>
             <p className="text-emerald-100 text-xs md:text-sm font-medium">
               📱 {user.phone} • 📍 {profileData?.district || 'District Not Set'}, {profileData?.state || 'State Not Set'}
@@ -112,10 +110,10 @@ export default function FarmerDashboard() {
         <Card className="border border-amber-200 bg-amber-50/60 p-5 space-y-3">
           <div className="flex items-center justify-between text-xs font-black">
             <span className="text-amber-950 flex items-center gap-1.5">
-              🚀 Progressive Profile Onboarding ({completionPct}% Complete)
+              🚀 {t('dashboard.profileProgress', 'Profile Progress')} ({completionPct}% Complete)
             </span>
             <Link href="/farmer/profile" className="text-emerald-700 hover:underline">
-              Complete Setup →
+              {t('profile.saveChanges', 'Complete Setup')} →
             </Link>
           </div>
           <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
@@ -125,7 +123,7 @@ export default function FarmerDashboard() {
             />
           </div>
           <p className="text-xs text-slate-600 font-medium">
-            Add your village, land farms, and sown crops to unlock customized disease diagnostic advisories.
+            {t('dashboard.completeProfileBanner', 'Add your village, land farms, and sown crops to unlock customized advisories.')}
           </p>
         </Card>
       )}
@@ -138,9 +136,9 @@ export default function FarmerDashboard() {
               <Sun className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-sky-800 uppercase tracking-wider">District Weather</span>
+              <span className="text-[10px] font-extrabold text-sky-800 uppercase tracking-wider">{t('dashboard.districtWeather', 'District Weather')}</span>
               <h4 className="text-lg font-black text-slate-900">32°C • Clear Sky</h4>
-              <p className="text-xs text-slate-600 font-medium">Ideal conditions for crop spraying</p>
+              <p className="text-xs text-slate-600 font-medium">{t('dashboard.fieldWeatherForecast', 'Ideal conditions for crop spraying')}</p>
             </div>
           </div>
         </Card>
@@ -151,9 +149,9 @@ export default function FarmerDashboard() {
               <Tractor className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider">Active Season</span>
+              <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider">{t('dashboard.activeSeason', 'Active Season')}</span>
               <h4 className="text-lg font-black text-slate-900">Kharif Season</h4>
-              <p className="text-xs text-slate-600 font-medium">{cropsCount} registered crop varieties</p>
+              <p className="text-xs text-slate-600 font-medium">{cropsCount} {t('dashboard.myCrops', 'registered crops')}</p>
             </div>
           </div>
         </Card>
@@ -164,9 +162,9 @@ export default function FarmerDashboard() {
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider">Pest Watch Alert</span>
+              <span className="text-[10px] font-extrabold text-amber-900 uppercase tracking-wider">{t('dashboard.pestAlert', 'Pest Watch Alert')}</span>
               <h4 className="text-lg font-black text-slate-900">Chilli Thrips Alert</h4>
-              <p className="text-xs text-slate-600 font-medium">High humidity pest warning in district</p>
+              <p className="text-xs text-slate-600 font-medium">{t('cropAdvisory.urgentCase', 'High humidity pest warning in district')}</p>
             </div>
           </div>
         </Card>
@@ -180,7 +178,7 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <Tractor className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">{t('myCrops')}</h3>
+            <h3 className="text-sm font-black text-slate-900">{t('dashboard.myCrops', 'My Crops')}</h3>
             <Badge variant="success" size="sm">
               {fetchingData ? '...' : `${cropsCount} Active`}
             </Badge>
@@ -193,8 +191,8 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <ShoppingBag className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">Shop Inputs</h3>
-            <Badge variant="harvest" size="sm">Marketplace</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('dashboard.shopInputs', 'Shop Inputs')}</h3>
+            <Badge variant="harvest" size="sm">{t('navbar.marketplace', 'Marketplace')}</Badge>
           </Card>
         </Link>
 
@@ -204,30 +202,30 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <Package className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">My Orders</h3>
-            <Badge variant="info" size="sm">Track Delivery</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('dashboard.myOrders', 'My Orders')}</h3>
+            <Badge variant="info" size="sm">{t('orders.trackOrder', 'Track Delivery')}</Badge>
           </Card>
         </Link>
 
-        {/* 4. CROP PROBLEM */}
-        <Link href="/farmer/crop-problems">
+        {/* 4. CROP DOCTOR */}
+        <Link href="/crop-doctor">
           <Card hoverable className="p-5 flex flex-col items-center text-center space-y-2 border-rose-200">
             <div className="w-14 h-14 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <Stethoscope className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">Crop Problem</h3>
-            <Badge variant="danger" size="sm">Report Pest</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('cropDoctor.title', 'AI Crop Doctor')}</h3>
+            <Badge variant="danger" size="sm">{t('cropDoctor.uploadPhoto', 'Upload Photo')}</Badge>
           </Card>
         </Link>
 
         {/* 5. EXPERT SUPPORT */}
-        <Link href="/farmer/consultations">
+        <Link href="/farmer/crop-problems">
           <Card hoverable className="p-5 flex flex-col items-center text-center space-y-2 border-purple-200">
             <div className="w-14 h-14 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <MessageSquare className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">Expert Advisory</h3>
-            <Badge variant="neutral" size="sm">Consult Chat</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('dashboard.expertAdvisory', 'Expert Advisory')}</h3>
+            <Badge variant="neutral" size="sm">{t('cropAdvisory.askExpert', 'Consult Chat')}</Badge>
           </Card>
         </Link>
 
@@ -237,8 +235,8 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <Bell className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">Alerts</h3>
-            <Badge variant="neutral" size="sm">Inbox</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('dashboard.alerts', 'Alerts')}</h3>
+            <Badge variant="neutral" size="sm">{t('notifications.title', 'Inbox')}</Badge>
           </Card>
         </Link>
 
@@ -248,7 +246,7 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-teal-100 text-teal-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <Home className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">{t('myFarm')}</h3>
+            <h3 className="text-sm font-black text-slate-900">{t('navbar.myFarms', 'My Farms')}</h3>
             <Badge variant="success" size="sm">
               {fetchingData ? '...' : `${farmsCount} Units`}
             </Badge>
@@ -261,8 +259,8 @@ export default function FarmerDashboard() {
             <div className="w-14 h-14 bg-slate-100 text-slate-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm">
               <User className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-900">{t('myProfile')}</h3>
-            <Badge variant="neutral" size="sm">Settings</Badge>
+            <h3 className="text-sm font-black text-slate-900">{t('navbar.profile', 'My Profile')}</h3>
+            <Badge variant="neutral" size="sm">{t('dashboard.settings', 'Settings')}</Badge>
           </Card>
         </Link>
       </div>
@@ -272,10 +270,10 @@ export default function FarmerDashboard() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="space-y-1">
             <h4 className="font-black text-lg flex items-center gap-2">
-              <PhoneCall className="w-5 h-5" /> Need Assistance? Call Toll-Free!
+              <PhoneCall className="w-5 h-5" /> {t('app.callSupport', 'Need Assistance? Call Toll-Free!')}
             </h4>
             <p className="text-xs font-semibold text-emerald-950/90">
-              Call-Center Agents assist farmers to register crops, report pest issues, and place input orders over phone calls.
+              {t('app.footerDesc', 'Call-Center Agents assist farmers to register crops, report pest issues, and place input orders over phone calls.')}
             </p>
           </div>
           <a

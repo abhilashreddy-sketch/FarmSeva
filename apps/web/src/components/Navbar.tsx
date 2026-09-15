@@ -5,26 +5,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Sprout,
-  Globe,
   ShoppingCart,
   User,
   LogOut,
   Menu,
   X,
-  Store,
-  Truck,
-  ShieldAlert,
-  Headphones,
   Search,
-  ChevronDown
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { SUPPORTED_LOCALES } from '@farm-seva/shared';
-import { SupportedLocale } from '../i18n/translations';
+import { LanguageSelector } from './LanguageSelector';
 
 export default function Navbar() {
-  const { locale, setLocale, t } = useLanguage();
+  const { t } = useLanguage();
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,10 +36,10 @@ export default function Navbar() {
             </div>
             <div>
               <span className="font-black text-xl tracking-tight text-white group-hover:text-amber-300 transition">
-                FARM SEVA
+                {t('app.name', 'FARM SEVA')}
               </span>
               <span className="hidden sm:block text-[10px] font-bold tracking-wider text-emerald-200 uppercase">
-                Agri Marketplace & Advisory
+                {t('app.tagline', 'Agri Marketplace & Advisory')}
               </span>
             </div>
           </Link>
@@ -56,7 +49,7 @@ export default function Navbar() {
             <div className="relative w-full">
               <input
                 type="text"
-                placeholder="Search products, crops, pests or sellers..."
+                placeholder={t('navbar.searchPlaceholder', 'Search products, crops, pests or dealers...')}
                 className="w-full bg-emerald-900/60 border border-emerald-500/60 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-emerald-200/70 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-emerald-950/80 transition"
               />
               <Search className="w-4 h-4 text-emerald-300 absolute left-3 top-2.5" />
@@ -74,7 +67,7 @@ export default function Navbar() {
                       isActive('/farmer') ? 'bg-emerald-800 text-amber-300 shadow-inner' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Dashboard
+                    {t('navbar.dashboard', 'Dashboard')}
                   </Link>
                   <Link
                     href="/farmer/marketplace"
@@ -82,7 +75,7 @@ export default function Navbar() {
                       isActive('/farmer/marketplace') ? 'bg-amber-500 text-emerald-950 font-black shadow' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Marketplace
+                    {t('navbar.marketplace', 'Marketplace')}
                   </Link>
                   <Link
                     href="/farmer/crops"
@@ -90,7 +83,7 @@ export default function Navbar() {
                       isActive('/farmer/crops') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    My Crops
+                    {t('navbar.myCrops', 'My Crops')}
                   </Link>
                   <Link
                     href="/crop-doctor"
@@ -98,7 +91,7 @@ export default function Navbar() {
                       isActive('/crop-doctor') ? 'bg-amber-400 text-emerald-950 font-black shadow' : 'bg-emerald-800/80 hover:bg-emerald-800 text-amber-300'
                     }`}
                   >
-                    🌱 AI Crop Doctor
+                    🌱 {t('navbar.cropDoctor', 'AI Crop Doctor')}
                   </Link>
                   <Link
                     href="/farmer/crop-problems"
@@ -106,7 +99,7 @@ export default function Navbar() {
                       isActive('/farmer/crop-problems') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Crop Advisory
+                    {t('navbar.cropAdvisory', 'Crop Advisory')}
                   </Link>
                 </>
               )}
@@ -119,7 +112,7 @@ export default function Navbar() {
                       isActive('/seller') ? 'bg-emerald-800 text-amber-300 shadow-inner' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Shop Dashboard
+                    {t('navbar.sellerDashboard', 'Dealer Console')}
                   </Link>
                   <Link
                     href="/seller/marketplace"
@@ -127,7 +120,7 @@ export default function Navbar() {
                       isActive('/seller/marketplace') ? 'bg-amber-500 text-emerald-950 font-black' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Inventory Listings
+                    {t('seller.productCatalog', 'Product Catalog')}
                   </Link>
                   <Link
                     href="/seller/orders"
@@ -135,7 +128,7 @@ export default function Navbar() {
                       isActive('/seller/orders') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Farmer Orders
+                    {t('navbar.orders', 'Orders')}
                   </Link>
                 </>
               )}
@@ -148,7 +141,7 @@ export default function Navbar() {
                       isActive('/expert') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Consultation Desk
+                    {t('navbar.expertDashboard', 'Expert Station')}
                   </Link>
                 </>
               )}
@@ -161,20 +154,7 @@ export default function Navbar() {
                       isActive('/delivery') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Deliveries Desk
-                  </Link>
-                </>
-              )}
-
-              {user.role === 'CALL_CENTER_AGENT' && (
-                <>
-                  <Link
-                    href="/call-center"
-                    className={`px-3 py-2 rounded-xl transition ${
-                      isActive('/call-center') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
-                    }`}
-                  >
-                    Call Center Desk
+                    {t('navbar.deliveryDashboard', 'Delivery Console')}
                   </Link>
                 </>
               )}
@@ -187,7 +167,7 @@ export default function Navbar() {
                       isActive('/admin') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Admin Center
+                    {t('navbar.adminDashboard', 'Admin Center')}
                   </Link>
                   <Link
                     href="/admin/marketplace"
@@ -195,7 +175,7 @@ export default function Navbar() {
                       isActive('/admin/marketplace') ? 'bg-amber-500 text-emerald-950 font-black' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    Catalog
+                    {t('admin.productApprovals', 'Catalog')}
                   </Link>
                 </>
               )}
@@ -205,29 +185,15 @@ export default function Navbar() {
           {/* Right Action Controls */}
           <div className="flex items-center gap-3">
             
-            {/* Language Selector */}
-            <div className="relative flex items-center bg-emerald-950/60 border border-emerald-600/70 rounded-xl px-2.5 py-1.5 shadow-sm">
-              <Globe className="w-3.5 h-3.5 text-emerald-300 mr-1.5 shrink-0" />
-              <select
-                value={locale}
-                onChange={(e) => setLocale(e.target.value as SupportedLocale)}
-                className="bg-transparent text-xs font-black text-white focus:outline-none cursor-pointer appearance-none pr-4"
-              >
-                {SUPPORTED_LOCALES.map((loc) => (
-                  <option key={loc.code} value={loc.code} className="text-slate-900 bg-white font-medium">
-                    {loc.nativeName} ({loc.code.toUpperCase()})
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3 h-3 text-emerald-300 absolute right-2 pointer-events-none" />
-            </div>
+            {/* Reusable 8-Locale Language Selector */}
+            <LanguageSelector variant="navbar" />
 
             {/* Farmer Cart Icon (If Farmer) */}
             {user && user.role === 'FARMER' && (
               <Link
                 href="/farmer/cart"
                 className="relative p-2 text-emerald-100 hover:text-amber-300 bg-emerald-800/50 hover:bg-emerald-800 rounded-xl transition shadow-sm"
-                title="My Cart"
+                title={t('navbar.cart', 'Cart')}
               >
                 <ShoppingCart className="w-4 h-4" />
               </Link>
@@ -247,7 +213,7 @@ export default function Navbar() {
                 <button
                   onClick={logout}
                   className="p-2 text-emerald-200 hover:text-white bg-rose-600/80 hover:bg-rose-600 rounded-xl transition shadow-sm"
-                  title="Logout"
+                  title={t('navbar.logout', 'Logout')}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -258,13 +224,13 @@ export default function Navbar() {
                   href="/login"
                   className="text-xs font-extrabold text-white hover:text-emerald-200 px-3 py-2 rounded-xl transition"
                 >
-                  {t('login')}
+                  {t('navbar.login', 'Log In')}
                 </Link>
                 <Link
                   href="/register"
                   className="bg-amber-400 hover:bg-amber-300 text-emerald-950 font-black text-xs px-4 py-2 rounded-xl shadow transition"
                 >
-                  {t('register')}
+                  {t('navbar.register', 'Register')}
                 </Link>
               </div>
             )}
@@ -287,7 +253,7 @@ export default function Navbar() {
           <div className="relative w-full mb-3">
             <input
               type="text"
-              placeholder="Search products or crops..."
+              placeholder={t('navbar.searchPlaceholder', 'Search products or crops...')}
               className="w-full bg-emerald-950 border border-emerald-600 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-emerald-300"
             />
             <Search className="w-4 h-4 text-emerald-300 absolute left-3 top-2.5" />
@@ -304,7 +270,7 @@ export default function Navbar() {
                   onClick={logout}
                   className="bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg"
                 >
-                  Logout
+                  {t('navbar.logout', 'Logout')}
                 </button>
               </div>
 
@@ -314,14 +280,14 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="bg-emerald-800 p-2.5 rounded-xl text-center"
                 >
-                  🏠 Dashboard
+                  🏠 {t('navbar.dashboard', 'Dashboard')}
                 </Link>
                 <Link
                   href="/farmer/marketplace"
                   onClick={() => setMobileMenuOpen(false)}
                   className="bg-amber-500 text-emerald-950 font-black p-2.5 rounded-xl text-center"
                 >
-                  🛒 Marketplace
+                  🛒 {t('navbar.marketplace', 'Marketplace')}
                 </Link>
               </div>
             </div>
@@ -332,14 +298,14 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="bg-emerald-800 text-white text-center py-2.5 rounded-xl font-bold text-sm"
               >
-                {t('login')}
+                {t('navbar.login', 'Log In')}
               </Link>
               <Link
                 href="/register"
                 onClick={() => setMobileMenuOpen(false)}
                 className="bg-amber-400 text-emerald-950 text-center py-2.5 rounded-xl font-black text-sm"
               >
-                {t('register')}
+                {t('navbar.register', 'Register')}
               </Link>
             </div>
           )}

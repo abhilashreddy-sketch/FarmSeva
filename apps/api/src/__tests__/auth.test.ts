@@ -22,13 +22,27 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
 
   beforeAll(async () => {
     // Clean up test users if existing
+    const testPhones = ['9999911111', farmerPhone, sellerPhone, suspendedPhone, '9888800004', '9888800005', '9888800888', '9888800999', '9666611111'];
+
     await prisma.auditLog.deleteMany({});
     await prisma.refreshToken.deleteMany({});
     await prisma.passwordResetToken.deleteMany({});
+
+    // Delete related child models before user deletion
+    await prisma.farmerProfile.deleteMany({
+      where: { user: { phone: { in: testPhones } } },
+    });
+    await prisma.seller.deleteMany({
+      where: { user: { phone: { in: testPhones } } },
+    });
+    await prisma.expert.deleteMany({
+      where: { user: { phone: { in: testPhones } } },
+    });
+    await prisma.deliveryPartner.deleteMany({
+      where: { user: { phone: { in: testPhones } } },
+    });
     await prisma.user.deleteMany({
-      where: {
-        phone: { in: ['9999911111', farmerPhone, sellerPhone, suspendedPhone, '9888800004', '9888800005', '9888800888', '9888800999', '9666611111'] },
-      },
+      where: { phone: { in: testPhones } },
     });
 
     // Seed test Admin user
