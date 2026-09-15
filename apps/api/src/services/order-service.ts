@@ -125,6 +125,20 @@ export class OrderService {
       throw new ApiError('ORDER_NOT_FOUND', 'Order not found', 404);
     }
 
+    if (userRole === 'SELLER' || userRole === 'seller') {
+      const seller = await prisma.seller.findUnique({
+        where: { userId },
+        include: { shops: true },
+      });
+      if (!seller) {
+        throw new ApiError('SELLER_NOT_FOUND', 'Seller profile not found', 404);
+      }
+      const shopIds = seller.shops.map((s) => s.id);
+      if (!shopIds.includes(order.shopId)) {
+        throw new ApiError('AUTH_OWNERSHIP_DENIED', 'Unauthorized: Order does not belong to seller shop', 403);
+      }
+    }
+
     // Validate state transition using shared state machine
     const transitionCheck = validateOrderStateTransition(order.status as any, targetStatus, userRole);
     if (!transitionCheck.isValid) {

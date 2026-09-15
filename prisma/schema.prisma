@@ -496,13 +496,19 @@ model Payment {
   order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
   paymentProvider    String        // RAZORPAY, CASH_ON_DELIVERY, UPI_DIRECT
   transactionId      String?
+  razorpayOrderId    String?
+  razorpayPaymentId  String?
+  razorpaySignature  String?
   paymentMethod      String?       // UPI, CARD, NETBANKING, COD
-  status String @default("PENDING")
+  status             String        @default("PENDING")
   amount             Decimal      
   currency           String        @default("INR")
   paidAt             DateTime?
   rawResponse        String?      
   createdAt          DateTime      @default(now())
+
+  @@index([orderId])
+  @@index([razorpayOrderId])
 }
 
 model Invoice {

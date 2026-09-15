@@ -4,6 +4,7 @@ import { authenticateToken } from '../middleware/auth-middleware';
 
 const router = Router();
 
+router.post('/create-order', authenticateToken, PaymentController.createPaymentOrder);
 router.post('/verify', authenticateToken, PaymentController.verifyPayment);
 router.post('/webhook', PaymentController.handleWebhook);
 

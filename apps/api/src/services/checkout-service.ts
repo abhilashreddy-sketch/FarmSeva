@@ -75,7 +75,10 @@ export class CheckoutService {
       let currentPrice = Number(item.product.sellingPrice);
       if (item.variant) {
         currentPrice = Number(item.variant.sellingPrice);
+      } else if (item.listing) {
+        currentPrice = Number(item.listing.sellingPrice);
       }
+
       const cartPrice = Number(item.priceAtAddition);
       if (Math.abs(currentPrice - cartPrice) > 0.01) {
         throw new ApiError('PRICE_CHANGED', 'Price for product ' + item.product.name + ' has changed. Please review your cart.', 400);
@@ -83,6 +86,10 @@ export class CheckoutService {
 
       if (item.variant) {
         if (item.variant.stockQuantity < item.quantity) {
+          throw new ApiError('INVENTORY_UNAVAILABLE', 'Insufficient stock for product ' + item.product.name, 400);
+        }
+      } else if (item.listing) {
+        if (item.listing.quantityAvailable < item.quantity) {
           throw new ApiError('INVENTORY_UNAVAILABLE', 'Insufficient stock for product ' + item.product.name, 400);
         }
       }
@@ -123,7 +130,11 @@ export class CheckoutService {
           const orderItemDataList: any[] = [];
 
           for (const item of shopItems) {
-            const unitPrice = item.variant ? Number(item.variant.sellingPrice) : Number(item.product.sellingPrice);
+            const unitPrice = item.variant
+              ? Number(item.variant.sellingPrice)
+              : item.listing
+              ? Number(item.listing.sellingPrice)
+              : Number(item.product.sellingPrice);
             const totalPrice = unitPrice * item.quantity;
             shopTotal += totalPrice;
 
@@ -134,6 +145,18 @@ export class CheckoutService {
                   stockQuantity: { gte: item.quantity },
                 },
                 data: { stockQuantity: { decrement: item.quantity } },
+              });
+
+              if (updatedCount.count === 0) {
+                throw new ApiError('INSUFFICIENT_STOCK', `Product ${item.product.name} is out of stock`, 400);
+              }
+            } else if (item.sellerListingId) {
+              const updatedCount = await tx.sellerListing.updateMany({
+                where: {
+                  id: item.sellerListingId,
+                  quantityAvailable: { gte: item.quantity },
+                },
+                data: { quantityAvailable: { decrement: item.quantity } },
               });
 
               if (updatedCount.count === 0) {
@@ -246,4 +269,3 @@ export class CheckoutService {
     };
   }
 }
-
