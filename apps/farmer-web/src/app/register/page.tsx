@@ -1,93 +1,134 @@
 'use client';
 
 import React, { useState } from 'react';
+import { TextInput, Button, ErrorState, Badge } from '@farm-seva/shared-ui';
+import { User, Phone, Lock, MapPin, UserPlus } from 'lucide-react';
 import Link from 'next/link';
-import { API_BASE_URL } from '../../config/api';
+import { useRouter } from 'next/navigation';
+import { setAuthToken } from '../../lib/api-client';
 
 export default function FarmerRegisterPage() {
-  const [fullName, setFullName] = useState('');
+  const router = useRouter();
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
+  const [district, setDistrict] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Submitting registration to shared API...');
+    if (!name.trim() || !phone.trim() || !password.trim()) {
+      setError('Please provide full name, phone number, and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/register/farmer`, {
+      const res = await fetch('http://localhost:4000/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, phone, password }),
+        body: JSON.stringify({
+          name,
+          phone,
+          password,
+          role: 'FARMER',
+          district,
+        }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setStatus(`Account registered successfully for ${data.data.user.fullName}`);
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error?.message || 'Registration failed. Check phone number availability.');
       } else {
-        setStatus(`Registration Error: ${data.error?.message || 'Failed'}`);
+        const token = json.data?.token || json.token;
+        if (token) {
+          setAuthToken(token);
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
       }
     } catch (err: any) {
-      setStatus('Unable to connect to shared Express REST API');
+      setError('Unable to connect to registration service.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 space-y-6">
+    <div className="max-w-md mx-auto py-6 sm:py-12 space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-black text-slate-900">Farmer Registration</h1>
-        <p className="text-xs text-slate-600 font-medium">Create your free FARM SEVA farmer profile</p>
+        <Badge status="active">Customer Registration</Badge>
+        <h1 className="text-2xl font-black text-slate-900">Create Farmer Account</h1>
+        <p className="text-xs text-slate-500">
+          Register to buy certified district inputs and get AI crop health advice.
+        </p>
       </div>
 
-      <form onSubmit={handleRegister} className="p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
-        {status && (
-          <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200">
-            {status}
-          </div>
-        )}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        {error && <ErrorState type="inline" message={error} />}
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Full Name</label>
-          <input
-            type="text"
-            placeholder="Ramesh Kumar"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextInput
+            label="Full Name"
             required
+            leftIcon={<User className="w-4 h-4" />}
+            placeholder="e.g. Ramesh Kumar"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Mobile Phone Number</label>
-          <input
-            type="tel"
-            placeholder="9876543210"
+          <TextInput
+            label="Phone Number"
+            required
+            leftIcon={<Phone className="w-4 h-4" />}
+            placeholder="e.g. 9876543210"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
-          <input
+          <TextInput
+            label="District / Location (Optional)"
+            leftIcon={<MapPin className="w-4 h-4" />}
+            placeholder="e.g. Guntur, Andhra Pradesh"
+            value={district}
+            onChange={(e) => setDistrict(e.target.value)}
+          />
+
+          <TextInput
+            label="Set Password"
             type="password"
-            placeholder="••••••••"
+            required
+            leftIcon={<Lock className="w-4 h-4" />}
+            placeholder="Minimum 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={isLoading}
+            className="w-full bg-emerald-700 hover:bg-emerald-800"
+            leftIcon={<UserPlus className="w-4 h-4" />}
+          >
+            Create Farmer Account
+          </Button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-100 text-center">
+          <p className="text-xs text-slate-600">
+            Already have an account?{' '}
+            <Link href="/login" className="font-bold text-emerald-700 hover:underline">
+              Sign In
+            </Link>
+          </p>
         </div>
-
-        <button type="submit" className="w-full py-2.5 bg-emerald-800 text-white font-bold text-xs rounded-xl hover:bg-emerald-700">
-          Register Farmer Account
-        </button>
-      </form>
-
-      <p className="text-xs text-center text-slate-600">
-        Already registered? <Link href="/login" className="text-emerald-700 font-bold hover:underline">Sign In</Link>
-      </p>
+      </div>
     </div>
   );
 }

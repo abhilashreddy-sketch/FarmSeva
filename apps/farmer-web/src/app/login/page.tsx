@@ -1,80 +1,114 @@
 'use client';
 
 import React, { useState } from 'react';
+import { TextInput, Button, ErrorState, Badge } from '@farm-seva/shared-ui';
+import { Phone, Lock, LogIn, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { API_BASE_URL } from '../../config/api';
+import { useRouter } from 'next/navigation';
+import { setAuthToken } from '../../lib/api-client';
 
 export default function FarmerLoginPage() {
+  const router = useRouter();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Connecting to API...');
+    if (!identifier.trim() || !password.trim()) {
+      setError('Please provide phone number / email and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+      const res = await fetch('http://localhost:4000/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: identifier, password }),
+        body: JSON.stringify({ identifier, password }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setStatus(`Logged in successfully as ${data.data.user.fullName} (${data.data.user.role})`);
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error?.message || 'Invalid credentials or login failed.');
       } else {
-        setStatus(`Auth Error: ${data.error?.message || 'Login failed'}`);
+        const token = json.data?.token || json.token;
+        const user = json.data?.user || json.user;
+
+        if (user && user.role !== 'FARMER' && user.role !== 'ADMIN') {
+          setError(`Access restricted. Account role '${user.role}' belongs to the ${user.role.toLowerCase()} portal.`);
+          return;
+        }
+
+        setAuthToken(token);
+        router.push('/dashboard');
       }
     } catch (err: any) {
-      setStatus('Unable to connect to shared Express REST API');
+      setError('Unable to connect to authentication service.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 space-y-6">
+    <div className="max-w-md mx-auto py-6 sm:py-12 space-y-6">
       <div className="text-center space-y-2">
+        <Badge status="active">Customer Application</Badge>
         <h1 className="text-2xl font-black text-slate-900">Farmer Sign In</h1>
-        <p className="text-xs text-slate-600 font-medium">Access your FARM SEVA Customer Portal</p>
+        <p className="text-xs text-slate-500">
+          Access your agricultural orders, registered crops, and disease diagnostics.
+        </p>
       </div>
 
-      <form onSubmit={handleLogin} className="p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
-        {status && (
-          <div className="p-3 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200">
-            {status}
-          </div>
-        )}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        {error && <ErrorState type="inline" message={error} />}
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Email or Phone</label>
-          <input
-            type="text"
-            placeholder="farmer@example.com"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextInput
+            label="Phone Number or Email"
+            required
+            leftIcon={<Phone className="w-4 h-4" />}
+            placeholder="e.g. 9876543210 or farmer@farmseva.com"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
-          <input
+          <TextInput
+            label="Password"
             type="password"
-            placeholder="••••••••"
+            required
+            leftIcon={<Lock className="w-4 h-4" />}
+            placeholder="Enter your account password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={isLoading}
+            className="w-full bg-emerald-700 hover:bg-emerald-800"
+            leftIcon={<LogIn className="w-4 h-4" />}
+          >
+            Sign In to Farmer Portal
+          </Button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-100 text-center space-y-2">
+          <p className="text-xs text-slate-600">
+            Don't have a Farmer account yet?
+          </p>
+          <Link href="/register">
+            <Button variant="outline" size="sm" className="w-full" rightIcon={<ArrowRight className="w-4 h-4" />}>
+              Register New Farmer Account
+            </Button>
+          </Link>
         </div>
-
-        <button type="submit" className="w-full py-2.5 bg-emerald-800 text-white font-bold text-xs rounded-xl hover:bg-emerald-700">
-          Sign In to Farmer App
-        </button>
-      </form>
-
-      <p className="text-xs text-center text-slate-600">
-        New farmer? <Link href="/register" className="text-emerald-700 font-bold hover:underline">Create Account</Link>
-      </p>
+      </div>
     </div>
   );
 }
