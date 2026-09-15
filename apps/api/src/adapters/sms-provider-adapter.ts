@@ -18,11 +18,12 @@ export class SmsProviderAdapter {
     // Direct message dispatch
     const apiKey = process.env.SMS_PROVIDER_KEY || process.env.SMS_API_KEY || process.env.MSG91_AUTH_KEY;
     if (!apiKey) {
-      Logger.info(`[SMS:WAITING_FOR_PROVIDER] No SMS_PROVIDER_KEY configured. Suppressing live dispatch to ${cleanPhone}.`);
+      Logger.info(`[SMS:PROVIDER_NOT_CONFIGURED] No SMS provider API key configured. Suppressing live dispatch to ${cleanPhone}.`);
       return {
-        success: true,
+        success: false,
         provider: 'NONE (NOT_CONFIGURED)',
-        status: 'WAITING_FOR_PROVIDER',
+        status: 'FAILED',
+        error: 'SMS provider credentials are not configured on this server',
       };
     }
 

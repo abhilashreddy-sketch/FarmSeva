@@ -51,7 +51,7 @@ export const env = {
   REDIS_URL,
   CORS_ORIGINS: CORS_ORIGINS.split(','),
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS || '12', 10),
-  PILOT_MODE: process.env.PILOT_MODE === 'true' || true,
+  PILOT_MODE: process.env.PILOT_MODE === 'true',
   PILOT_SUPPORTED_STATES: process.env.PILOT_SUPPORTED_STATES
     ? process.env.PILOT_SUPPORTED_STATES.split(',')
     : ['Andhra Pradesh', 'Telangana', 'Karnataka', 'Maharashtra', 'Tamil Nadu'],

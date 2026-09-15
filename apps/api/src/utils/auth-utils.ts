@@ -59,5 +59,5 @@ export function hashToken(token: string): string {
  * Generates a 6-digit numeric OTP string (prepared for future SMS/IVR integration).
  */
 export function generateNumericOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 1000000).toString();
 }

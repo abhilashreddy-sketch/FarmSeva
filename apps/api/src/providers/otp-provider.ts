@@ -21,11 +21,12 @@ export class Msg91OtpProvider implements OtpProvider {
     const templateId = process.env.MSG91_TEMPLATE_ID || process.env.OTP_TEMPLATE_ID;
 
     if (!authKey) {
-      Logger.info(`[OTP:WAITING_FOR_PROVIDER] No MSG91_AUTH_KEY configured for phone ${params.phone}.`);
+      Logger.info(`[OTP:PROVIDER_NOT_CONFIGURED] No MSG91_AUTH_KEY configured for phone ${params.phone}.`);
       return {
-        success: true,
+        success: false,
         provider: 'MSG91 (NOT_CONFIGURED)',
-        status: 'WAITING_FOR_PROVIDER',
+        status: 'FAILED',
+        error: 'SMS provider MSG91 is not configured on this server (MSG91_AUTH_KEY missing)',
       };
     }
 
@@ -88,11 +89,12 @@ export class TwilioOtpProvider implements OtpProvider {
     const fromPhone = process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_FROM_NUMBER;
 
     if (!accountSid || !authToken) {
-      Logger.info(`[OTP:WAITING_FOR_PROVIDER] No Twilio credentials configured for phone ${params.phone}.`);
+      Logger.info(`[OTP:PROVIDER_NOT_CONFIGURED] No Twilio credentials configured for phone ${params.phone}.`);
       return {
-        success: true,
+        success: false,
         provider: 'TWILIO (NOT_CONFIGURED)',
-        status: 'WAITING_FOR_PROVIDER',
+        status: 'FAILED',
+        error: 'SMS provider Twilio is not configured on this server (TWILIO credentials missing)',
       };
     }
 

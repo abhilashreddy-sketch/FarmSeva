@@ -372,15 +372,15 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     });
 
     expect(forgotRes.status).toBe(200);
-    const resetToken = forgotRes.body.data.resetToken;
-    expect(resetToken).toBeDefined();
+    expect(forgotRes.body.data.resetToken).toBeUndefined(); // Verify token is NOT leaked in API response
 
-    const resetRes = await request(app).post('/api/v1/auth/reset-password').send({
-      token: resetToken,
+    // Test invalid reset token is rejected
+    const invalidResetRes = await request(app).post('/api/v1/auth/reset-password').send({
+      token: 'invalid_reset_token_string_123',
       newPassword: 'NewFarmerPassword123!',
     });
-
-    expect(resetRes.status).toBe(200);
+    expect(invalidResetRes.status).toBe(400);
+    expect(invalidResetRes.body.error.code).toBe('AUTH_INVALID_RESET_TOKEN');
 
     // Reactivate farmer for subsequent login test
     await prisma.user.update({ where: { id: farmerUserId }, data: { status: 'ACTIVE' } });

@@ -818,8 +818,7 @@ export class AuthService {
     });
 
     return {
-      message: 'Password reset token generated successfully',
-      resetToken: rawResetToken, // Returned in dev/test mode for manual entry
+      message: 'If phone number exists, password reset instructions have been generated',
     };
   }
 
