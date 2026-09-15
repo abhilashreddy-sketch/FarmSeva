@@ -112,7 +112,7 @@ export default function Navbar() {
                       isActive('/seller') ? 'bg-emerald-800 text-amber-300 shadow-inner' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.sellerDashboard', 'Dealer Console')}
+                    {t('navbar.sellerDashboard', 'Dashboard')}
                   </Link>
                   <Link
                     href="/seller/marketplace"
@@ -120,7 +120,7 @@ export default function Navbar() {
                       isActive('/seller/marketplace') ? 'bg-amber-500 text-emerald-950 font-black' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('seller.productCatalog', 'Product Catalog')}
+                    {t('seller.products', 'Products')}
                   </Link>
                   <Link
                     href="/seller/orders"
@@ -141,7 +141,7 @@ export default function Navbar() {
                       isActive('/expert') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.expertDashboard', 'Expert Station')}
+                    {t('navbar.expertDashboard', 'Workstation')}
                   </Link>
                 </>
               )}
@@ -154,7 +154,39 @@ export default function Navbar() {
                       isActive('/delivery') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.deliveryDashboard', 'Delivery Console')}
+                    {t('navbar.deliveryDashboard', 'Dashboard')}
+                  </Link>
+                  <Link
+                    href="/delivery/deliveries"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/delivery/deliveries') ? 'bg-purple-600 text-white font-black' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('delivery.activeDeliveries', 'Deliveries')}
+                  </Link>
+                  <Link
+                    href="/delivery/earnings"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/delivery/earnings') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('delivery.earnings', 'Earnings')}
+                  </Link>
+                  <Link
+                    href="/delivery/history"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/delivery/history') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('delivery.history', 'History')}
+                  </Link>
+                  <Link
+                    href="/delivery/profile"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/delivery/profile') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('delivery.profile', 'Profile')}
                   </Link>
                 </>
               )}
@@ -167,7 +199,15 @@ export default function Navbar() {
                       isActive('/admin') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.adminDashboard', 'Admin Center')}
+                    {t('navbar.adminDashboard', 'Operations')}
+                  </Link>
+                  <Link
+                    href="/admin/kyc"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/admin/kyc') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('admin.kyc', 'KYC Approvals')}
                   </Link>
                   <Link
                     href="/admin/marketplace"
@@ -175,7 +215,31 @@ export default function Navbar() {
                       isActive('/admin/marketplace') ? 'bg-amber-500 text-emerald-950 font-black' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('admin.productApprovals', 'Catalog')}
+                    {t('admin.productApprovals', 'Products')}
+                  </Link>
+                  <Link
+                    href="/admin/orders"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/admin/orders') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('admin.orders', 'Orders')}
+                  </Link>
+                  <Link
+                    href="/admin/deliveries"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/admin/deliveries') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('admin.deliveries', 'Deliveries')}
+                  </Link>
+                  <Link
+                    href="/admin/business"
+                    className={`px-3 py-2 rounded-xl transition ${
+                      isActive('/admin/business') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
+                    }`}
+                  >
+                    {t('admin.business', 'Business')}
                   </Link>
                 </>
               )}
