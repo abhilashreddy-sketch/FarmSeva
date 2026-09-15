@@ -1,11 +1,12 @@
+@import "@farm-seva/shared-ui/styles.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    color: #0f172a;
-    background-color: #f8fafc;
+    color: var(--fs-neutral-dark);
+    background-color: var(--fs-role-expert-bg);
     font-family: system-ui, -apple-system, sans-serif;
   }
 }

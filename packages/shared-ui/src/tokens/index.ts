@@ -1,0 +1,81 @@
+export const DESIGN_TOKENS = {
+  brand: {
+    primary: '#047857',
+    primaryDark: '#065F46',
+    primaryLight: '#D1FAE5',
+    accentGold: '#D97706',
+  },
+  neutrals: {
+    dark: '#0F172A',
+    slate: '#334155',
+    muted: '#64748B',
+    border: '#E2E8F0',
+    bg: '#F8FAFC',
+    white: '#FFFFFF',
+  },
+  status: {
+    success: '#16A34A',
+    warning: '#D97706',
+    error: '#DC2626',
+    info: '#2563EB',
+  },
+  roles: {
+    farmer: {
+      name: 'FARM SEVA FARMER',
+      role: 'FARMER',
+      accentColor: '#047857',
+      bgLight: '#F0FDF4',
+      navLabel: 'Customer Portal',
+    },
+    seller: {
+      name: 'FARM SEVA SELLER',
+      role: 'SELLER',
+      accentColor: '#D97706',
+      bgLight: '#FFFBEB',
+      navLabel: 'Agri Dealer Console',
+    },
+    expert: {
+      name: 'FARM SEVA EXPERT',
+      role: 'EXPERT',
+      accentColor: '#0284C7',
+      bgLight: '#F0F9FF',
+      navLabel: 'Agronomist Workstation',
+    },
+    delivery: {
+      name: 'FARM SEVA DELIVERY',
+      role: 'DELIVERY',
+      accentColor: '#6B21A8',
+      bgLight: '#FAF5FF',
+      navLabel: 'Logistics Partner App',
+    },
+    admin: {
+      name: 'FARM SEVA ADMIN',
+      role: 'ADMIN',
+      accentColor: '#1E293B',
+      bgLight: '#F8FAFC',
+      navLabel: 'Operations Desk',
+    },
+  },
+  spacing: {
+    1: '4px',
+    2: '8px',
+    3: '12px',
+    4: '16px',
+    5: '20px',
+    6: '24px',
+    8: '32px',
+    10: '40px',
+    12: '48px',
+    16: '64px',
+    20: '80px',
+  },
+  radius: {
+    sm: '6px',
+    md: '10px',
+    lg: '14px',
+    xl: '20px',
+  },
+  touchTargetMin: '44px',
+} as const;
+
+export type ApplicationRole = 'FARMER' | 'SELLER' | 'EXPERT' | 'DELIVERY' | 'ADMIN';

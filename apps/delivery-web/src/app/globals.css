@@ -1,3 +1,4 @@
+@import "@farm-seva/shared-ui/styles.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,7 +6,7 @@
 @layer base {
   body {
     color: #f8fafc;
-    background-color: #020617;
+    background-color: #0f172a;
     font-family: system-ui, -apple-system, sans-serif;
   }
 }

@@ -1,0 +1,71 @@
+:root {
+  /* Central Brand Tokens */
+  --fs-brand-primary: #047857;
+  --fs-brand-primary-dark: #065f46;
+  --fs-brand-primary-light: #d1fae5;
+  --fs-brand-accent-gold: #d97706;
+
+  /* Neutrals */
+  --fs-neutral-dark: #0f172a;
+  --fs-neutral-slate: #334155;
+  --fs-neutral-muted: #64748b;
+  --fs-neutral-border: #e2e8f0;
+  --fs-neutral-bg: #f8fafc;
+  --fs-neutral-white: #ffffff;
+
+  /* Status Colors */
+  --fs-status-success: #16a34a;
+  --fs-status-warning: #d97706;
+  --fs-status-error: #dc2626;
+  --fs-status-info: #2563eb;
+
+  /* Role-Specific Identity Colors */
+  --fs-role-farmer-primary: #047857;
+  --fs-role-farmer-bg: #f0fdf4;
+  --fs-role-seller-primary: #d97706;
+  --fs-role-seller-bg: #fffbeb;
+  --fs-role-expert-primary: #0284c7;
+  --fs-role-expert-bg: #f0f9ff;
+  --fs-role-delivery-primary: #6b21a8;
+  --fs-role-delivery-bg: #faf5ff;
+  --fs-role-admin-primary: #1e293b;
+  --fs-role-admin-bg: #f8fafc;
+
+  /* Spacing System */
+  --fs-space-1: 4px;
+  --fs-space-2: 8px;
+  --fs-space-3: 12px;
+  --fs-space-4: 16px;
+  --fs-space-5: 20px;
+  --fs-space-6: 24px;
+  --fs-space-8: 32px;
+  --fs-space-10: 40px;
+  --fs-space-12: 48px;
+  --fs-space-16: 64px;
+  --fs-space-20: 80px;
+
+  /* Border Radius */
+  --fs-radius-sm: 6px;
+  --fs-radius-md: 10px;
+  --fs-radius-lg: 14px;
+  --fs-radius-xl: 20px;
+
+  /* Elevation Shadows */
+  --fs-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --fs-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --fs-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+
+  /* Touch Target & Accessibility */
+  --fs-touch-target-min: 44px;
+  --fs-focus-ring: 0 0 0 3px rgba(4, 120, 87, 0.35);
+}
+
+/* Reduced motion preference support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
