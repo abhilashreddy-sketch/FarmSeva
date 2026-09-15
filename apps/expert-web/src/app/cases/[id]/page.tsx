@@ -222,7 +222,7 @@ export default function CaseEvaluationDeskPage() {
                 ) : (
                   <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50">
                     <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-                    <p className="text-[11px] text-slate-400 font-medium">No high-res crop images uploaded</p>
+                    <p className="text-[11px] text-slate-400 font-medium">No crop images uploaded</p>
                   </div>
                 )}
               </div>
@@ -281,21 +281,21 @@ export default function CaseEvaluationDeskPage() {
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Stethoscope className="w-5 h-5 text-sky-600" />
-                  Official Agronomist Medical Prescription
+                  Official Agronomist Treatment Guidance
                 </h2>
                 <Badge status="processing" className="bg-sky-100 text-sky-800">
-                  Clinical Action Form
+                  Advisory Form
                 </Badge>
               </div>
 
               <form onSubmit={handleSubmitGuidance} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Pathology Diagnosis Summary *
+                    Disease Assessment Summary *
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="Enter formal diagnosis (e.g. Cercospora Leaf Spot caused by fungal spores...)"
+                    placeholder="Enter assessment (e.g. Cercospora Leaf Spot caused by fungal spores...)"
                     value={diagnosisSummary}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDiagnosisSummary(e.target.value)}
                     className="w-full px-3 py-2 text-xs font-medium border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
@@ -305,7 +305,7 @@ export default function CaseEvaluationDeskPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Recommended Chemical Treatment & Active Ingredient *
+                    Recommended Treatment & Active Ingredient *
                   </label>
                   <textarea
                     rows={2}
@@ -353,7 +353,7 @@ export default function CaseEvaluationDeskPage() {
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>
-                    Submitting this prescription records your agronomist credentials against case #{caseDetail.id.slice(-6)} and dispatches guidance to the farmer.
+                    Submitting this recommendation records your agronomist credentials against case #{caseDetail.id.slice(-6)} and dispatches guidance to the farmer.
                   </span>
                 </div>
 

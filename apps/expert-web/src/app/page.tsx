@@ -7,7 +7,7 @@ import {
   Button,
   Badge,
 } from '@farm-seva/shared-ui';
-import { Stethoscope, FileText, CheckCircle2, ArrowRight, ShieldCheck, Activity, AlertTriangle } from 'lucide-react';
+import { Stethoscope, FileText, ArrowRight, ShieldCheck, Activity, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ExpertHomePage() {
@@ -17,15 +17,15 @@ export default function ExpertHomePage() {
       <div className="bg-gradient-to-r from-sky-900 via-sky-800 to-slate-900 text-white p-6 sm:p-10 rounded-3xl shadow-xl space-y-4 border border-sky-700">
         <div className="flex items-center gap-2">
           <Badge status="processing" className="bg-sky-500/20 text-sky-200 border-sky-400/30">
-            Agronomist & Pathology Workstation
+            Agronomist & Crop Support Workstation
           </Badge>
-          <span className="text-xs text-sky-300 font-bold">• API Target: http://localhost:4000</span>
+          <span className="text-xs text-sky-300 font-bold">• Shared API Target: http://localhost:4000</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
           FARM SEVA EXPERT
         </h1>
         <p className="text-sky-100 text-sm sm:text-base font-medium max-w-2xl leading-relaxed">
-          Certified Agronomist & Plant Pathology Workstation. Triage farmer crop disease cases, verify AI diagnostic models, and prescribe scientific treatment guidelines with precise dosage.
+          Certified Agronomist & Crop Support Workstation. Review farmer crop disease submissions, verify AI diagnostic models, and provide scientific treatment guidelines with accurate dosage recommendations.
         </p>
 
         <div className="flex flex-wrap gap-3 pt-2">
@@ -46,8 +46,8 @@ export default function ExpertHomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <MetricCard
           title="Case Evaluation Desk"
-          value="Clinical Queue"
-          subtitle="Real-time farmer crop triage"
+          value="Agronomic Queue"
+          subtitle="Real-time farmer crop advisory"
           icon={<Stethoscope className="w-5 h-5 text-sky-600" />}
         />
         <MetricCard
@@ -67,9 +67,9 @@ export default function ExpertHomePage() {
       {/* Information Modules */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <InformationCard
-          badgeText="TRIAGE DESK"
+          badgeText="ADVISORY DESK"
           title="Farmer Crop Submissions"
-          description="Inspect high-resolution crop photos, field symptoms, and disease history submitted directly by registered farmers."
+          description="Inspect crop photos, reported field symptoms, and problem duration submitted directly by registered farmers."
           icon={<Stethoscope className="w-6 h-6 text-sky-600" />}
           action={
             <Link href="/login">
@@ -80,9 +80,9 @@ export default function ExpertHomePage() {
           }
         />
         <InformationCard
-          badgeText="PATHOLOGY GUIDANCE"
-          title="Scientific Treatment & Dosage"
-          description="Formulate binding recommendations covering chemical fungicides, biological pesticides, dosage timing, and safety periods."
+          badgeText="CROP GUIDANCE"
+          title="Treatment Guidance & Dosage"
+          description="Formulate scientific recommendations covering bio-pesticides, fungicides, application timing, and harvest safety periods."
           icon={<FileText className="w-6 h-6 text-sky-600" />}
           action={
             <Link href="/login">
