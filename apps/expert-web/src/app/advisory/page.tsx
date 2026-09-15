@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, TextInput, Badge, Toast } from '@farm-seva/shared-ui';
-import { AlertTriangle, Send, MapPin, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Card, Button, TextInput, Badge, Toast, EmptyState } from '@farm-seva/shared-ui';
+import { AlertTriangle, Send, MapPin, ShieldAlert, CheckCircle2, Info } from 'lucide-react';
 
 interface AdvisoryBulletin {
   id: string;
@@ -15,26 +15,7 @@ interface AdvisoryBulletin {
 }
 
 export default function AdvisoryDeskPage() {
-  const [advisories, setAdvisories] = useState<AdvisoryBulletin[]>([
-    {
-      id: 'ADV-01',
-      title: 'Monsoon Yellow Rust Pest Alert for Wheat',
-      district: 'Guntur / Krishna Hub',
-      crop: 'Wheat / Paddy',
-      severity: 'HIGH',
-      content: 'Cool humid temperatures increase yellow rust fungal risk. Farmers are advised to spray Propiconazole 25% EC at 1ml/L.',
-      createdAt: new Date().toLocaleDateString(),
-    },
-    {
-      id: 'ADV-02',
-      title: 'Cotton Pink Bollworm Advisory',
-      district: 'Warangal / Khammam',
-      crop: 'Cotton',
-      severity: 'MEDIUM',
-      content: 'Install Pheromone traps @ 5 per acre to monitor adult moth populations before egg laying.',
-      createdAt: new Date(Date.now() - 86400000).toLocaleDateString(),
-    },
-  ]);
+  const [advisories, setAdvisories] = useState<AdvisoryBulletin[]>([]);
 
   const [title, setTitle] = useState('');
   const [district, setDistrict] = useState('');
@@ -68,7 +49,7 @@ export default function AdvisoryDeskPage() {
       setDistrict('');
       setContent('');
       setSubmitting(false);
-      setToast({ message: 'Regional agricultural advisory published successfully to district farmers!', type: 'success' });
+      setToast({ message: 'Session advisory bulletin created (Note: Backend database persistence unavailable).', type: 'success' });
     }, 600);
   };
 
@@ -76,12 +57,20 @@ export default function AdvisoryDeskPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
       {toast && (
         <Toast
-          title={toast.type === 'success' ? 'Success' : 'Error'}
+          title={toast.type === 'success' ? 'Success' : 'Notice'}
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
         />
       )}
+
+      {/* Backend Limitation Notice Banner */}
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs leading-relaxed">
+        <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <strong className="font-bold">Backend Storage Notice:</strong> Persistent database API integration for regional advisory bulletins (`/api/v1/advisories`) is currently not implemented on the server. Bulletins posted below will persist in this browser session only and will not be permanently stored in the database.
+        </div>
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -90,7 +79,7 @@ export default function AdvisoryDeskPage() {
             Regional Agricultural Advisories
           </h1>
           <p className="text-xs text-slate-500 font-medium">
-            Publish district-level crop bulletins and pest outbreak warnings to protect farmer yields
+            Draft district-level crop bulletins and pest outbreak warnings (Session View)
           </p>
         </div>
       </div>
@@ -101,7 +90,7 @@ export default function AdvisoryDeskPage() {
           <Card className="p-5 border-slate-200 space-y-4">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-amber-600" />
-              Publish District Advisory
+              Draft District Advisory
             </h2>
 
             <form onSubmit={handlePostAdvisory} className="space-y-3">
@@ -170,7 +159,7 @@ export default function AdvisoryDeskPage() {
                 isLoading={submitting}
                 rightIcon={<Send className="w-3.5 h-3.5" />}
               >
-                Dispatch District Advisory Bulletin
+                Draft Advisory Bulletin
               </Button>
             </form>
           </Card>
@@ -179,45 +168,53 @@ export default function AdvisoryDeskPage() {
         {/* Bulletins List */}
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-sm font-bold text-slate-900 flex items-center justify-between">
-            <span>Active District Bulletins ({advisories.length})</span>
-            <span className="text-xs text-slate-400 font-normal">Updated Live</span>
+            <span>Session Bulletins ({advisories.length})</span>
+            <span className="text-xs text-slate-400 font-normal">Session Storage Only</span>
           </h2>
 
-          <div className="space-y-3">
-            {advisories.map((adv) => (
-              <Card key={adv.id} className="p-5 border-slate-200 hover:border-amber-300 transition space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      status={
-                        adv.severity === 'CRITICAL' || adv.severity === 'HIGH'
-                          ? 'rejected'
-                          : adv.severity === 'MEDIUM'
-                          ? 'warning'
-                          : 'active'
-                      }
-                    >
-                      {adv.severity} ALERT
-                    </Badge>
-                    <span className="text-xs font-bold text-slate-500">• {adv.district}</span>
+          {advisories.length === 0 ? (
+            <EmptyState
+              icon={<ShieldAlert className="w-12 h-12 text-slate-400" />}
+              title="No Session Advisories Posted"
+              description="Persistent backend database storage for regional advisory bulletins is currently unavailable. You may post a session bulletin using the form on the left."
+            />
+          ) : (
+            <div className="space-y-3">
+              {advisories.map((adv) => (
+                <Card key={adv.id} className="p-5 border-slate-200 hover:border-amber-300 transition space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        status={
+                          adv.severity === 'CRITICAL' || adv.severity === 'HIGH'
+                            ? 'rejected'
+                            : adv.severity === 'MEDIUM'
+                            ? 'warning'
+                            : 'active'
+                        }
+                      >
+                        {adv.severity} ALERT
+                      </Badge>
+                      <span className="text-xs font-bold text-slate-500">• {adv.district}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400">{adv.createdAt}</span>
                   </div>
-                  <span className="text-[11px] text-slate-400">{adv.createdAt}</span>
-                </div>
 
-                <h3 className="text-base font-black text-slate-900">{adv.title}</h3>
-                <p className="text-xs text-slate-700 leading-relaxed bg-amber-50/50 p-3 rounded-xl border border-amber-100">
-                  {adv.content}
-                </p>
+                  <h3 className="text-base font-black text-slate-900">{adv.title}</h3>
+                  <p className="text-xs text-slate-700 leading-relaxed bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                    {adv.content}
+                  </p>
 
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                  <span>Target Crop: {adv.crop}</span>
-                  <span className="text-emerald-700 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Dispatched to District Farmers
-                  </span>
-                </div>
-              </Card>
-            ))}
-          </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                    <span>Target Crop: {adv.crop}</span>
+                    <span className="text-amber-700 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Session Preview (Unpersisted)
+                    </span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
