@@ -14,12 +14,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <BrandHeader role="SELLER" />
         <Navigation role="SELLER" />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8 pb-20 sm:pb-8">
           {children}
         </main>
 
-        <footer className="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800">
-          <p>© 2026 FARM SEVA SELLER Application • Master Design System</p>
+        <footer className="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800 hidden sm:block">
+          <p>© 2026 FARM SEVA SELLER Application • Licensed Agri Dealer Console</p>
         </footer>
       </body>
     </html>

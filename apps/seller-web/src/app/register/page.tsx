@@ -1,132 +1,144 @@
 'use client';
 
 import React, { useState } from 'react';
+import { TextInput, Button, ErrorState, Badge } from '@farm-seva/shared-ui';
+import { User, Phone, Lock, Store, FileText, UserPlus } from 'lucide-react';
 import Link from 'next/link';
-import { API_BASE_URL } from '../../config/api';
+import { useRouter } from 'next/navigation';
+import { setAuthToken } from '../../lib/api-client';
 
 export default function SellerRegisterPage() {
-  const [businessName, setBusinessName] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [pesticideLicenseNo, setPesticideLicenseNo] = useState('');
+  const router = useRouter();
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [gstin, setGstin] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Submitting dealer registration...');
+    if (!name.trim() || !phone.trim() || !password.trim()) {
+      setError('Please provide full name, phone number, and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/register/seller`, {
+      const res = await fetch('http://localhost:4000/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessName, fullName, pesticideLicenseNo, phone, email, password }),
+        body: JSON.stringify({
+          name,
+          phone,
+          password,
+          role: 'SELLER',
+          businessName,
+          gstin,
+        }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setStatus(`Agri shop registered successfully for ${businessName}`);
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error?.message || 'Merchant registration failed. Check phone availability.');
       } else {
-        setStatus(`Registration Error: ${data.error?.message || 'Failed'}`);
+        const token = json.data?.token || json.token;
+        if (token) {
+          setAuthToken(token);
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
       }
     } catch (err: any) {
-      setStatus('Unable to connect to shared Express REST API');
+      setError('Unable to connect to registration service.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 space-y-6">
+    <div className="max-w-md mx-auto py-6 sm:py-12 space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-black text-slate-900">Agri Shop Registration</h1>
-        <p className="text-xs text-slate-600 font-medium">Register your retail shop on FARM SEVA SELLER</p>
+        <Badge status="pending">Merchant Registration</Badge>
+        <h1 className="text-2xl font-black text-slate-900">Register Agri Shop</h1>
+        <p className="text-xs text-slate-500">
+          Register your licensed retail shop to sell agricultural inputs on FARM SEVA.
+        </p>
       </div>
 
-      <form onSubmit={handleRegister} className="p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
-        {status && (
-          <div className="p-3 bg-amber-50 text-amber-900 text-xs font-semibold rounded-xl border border-amber-200">
-            {status}
-          </div>
-        )}
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+        {error && <ErrorState type="inline" message={error} />}
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Shop / Business Name</label>
-          <input
-            type="text"
-            placeholder="Kisan Krishi Kendra"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextInput
+            label="Proprietor / Contact Name"
+            required
+            leftIcon={<User className="w-4 h-4" />}
+            placeholder="e.g. Suresh Patel"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <TextInput
+            label="Shop / Business Name"
+            leftIcon={<Store className="w-4 h-4" />}
+            placeholder="e.g. Patel Krishi Seva Kendra"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Proprietor Name</label>
-          <input
-            type="text"
-            placeholder="Vijay Sharma"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
+          <TextInput
+            label="Phone Number"
             required
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Pesticide License No.</label>
-          <input
-            type="text"
-            placeholder="LIC/DL/2026/8892"
-            value={pesticideLicenseNo}
-            onChange={(e) => setPesticideLicenseNo(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
-          <input
-            type="tel"
-            placeholder="9876543210"
+            leftIcon={<Phone className="w-4 h-4" />}
+            placeholder="e.g. 9876543210"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
-          <input
-            type="email"
-            placeholder="dealer@farmseva.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
+          <TextInput
+            label="Trade License / GSTIN (Optional)"
+            leftIcon={<FileText className="w-4 h-4" />}
+            placeholder="e.g. 36AAAAA0000A1Z5"
+            value={gstin}
+            onChange={(e) => setGstin(e.target.value)}
           />
-        </div>
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
-          <input
+          <TextInput
+            label="Set Account Password"
             type="password"
-            placeholder="••••••••"
+            required
+            leftIcon={<Lock className="w-4 h-4" />}
+            placeholder="Minimum 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
           />
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={isLoading}
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold"
+            leftIcon={<UserPlus className="w-4 h-4" />}
+          >
+            Register Merchant Account
+          </Button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-100 text-center">
+          <p className="text-xs text-slate-600">
+            Already have a merchant account?{' '}
+            <Link href="/login" className="font-bold text-amber-700 hover:underline">
+              Sign In
+            </Link>
+          </p>
         </div>
-
-        <button type="submit" className="w-full py-2.5 bg-amber-600 text-white font-bold text-xs rounded-xl hover:bg-amber-700">
-          Register Agri Shop
-        </button>
-      </form>
-
-      <p className="text-xs text-center text-slate-600">
-        Already registered? <Link href="/login" className="text-amber-700 font-bold hover:underline">Sign In</Link>
-      </p>
+      </div>
     </div>
   );
 }
