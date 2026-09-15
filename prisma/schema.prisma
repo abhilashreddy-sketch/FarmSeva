@@ -243,15 +243,19 @@ model Expert {
 }
 
 model DeliveryPartner {
-  id                 String        @id @default(uuid())
-  userId             String        @unique
-  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicleType        String        // Bike, Auto, Pickup Truck
+  id                 String             @id @default(uuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType        String             // Bike, Auto, Pickup Truck
   vehicleNumber      String
   activeDistrict     String
-  isAvailable        Boolean       @default(true)
+  isAvailable        Boolean            @default(true)
+  currentLat         Decimal?
+  currentLng         Decimal?
+  lastLocationAt     DateTime?
 
   deliveries         Delivery[]
+  locations          DeliveryLocation[]
 }
 
 model CallCenterAgent {
@@ -534,23 +538,45 @@ model Address {
 }
 
 model Delivery {
-  id                 String        @id @default(uuid())
-  orderId            String        @unique
-  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id                 String            @id @default(uuid())
+  orderId            String            @unique
+  order              Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   deliveryPartnerId  String?
-  deliveryPartner    DeliveryPartner? @relation(fields: [deliveryPartnerId], references: [id])
-  status String @default("UNASSIGNED")
-  trackingCode       String        @unique
+  deliveryPartner    DeliveryPartner?  @relation(fields: [deliveryPartnerId], references: [id])
+  status             String            @default("UNASSIGNED")
+  trackingCode       String            @unique
   deliveryOtpHash    String?
+  pickupLat          Decimal?
+  pickupLng          Decimal?
+  deliveryLat        Decimal?
+  deliveryLng        Decimal?
+  earnings           Decimal?          @default(85.00)
   assignedAt         DateTime?
   pickedUpAt         DateTime?
   deliveredAt        DateTime?
   proofOfDeliveryUrl String?
   notes              String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  locations          DeliveryLocation[]
 
   @@index([orderId, deliveryPartnerId])
+}
+
+model DeliveryLocation {
+  id                String          @id @default(uuid())
+  deliveryPartnerId String
+  deliveryPartner   DeliveryPartner @relation(fields: [deliveryPartnerId], references: [id], onDelete: Cascade)
+  deliveryId        String?
+  delivery          Delivery?       @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+  latitude          Decimal
+  longitude         Decimal
+  accuracy          Float?
+  timestamp         DateTime        @default(now())
+
+  @@index([deliveryPartnerId, timestamp])
+  @@index([deliveryId])
 }
 
 // ----------------------------------------------------

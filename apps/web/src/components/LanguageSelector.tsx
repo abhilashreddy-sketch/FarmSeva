@@ -93,3 +93,5 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ variant = 'n
     </div>
   );
 };
+
+export default LanguageSelector;

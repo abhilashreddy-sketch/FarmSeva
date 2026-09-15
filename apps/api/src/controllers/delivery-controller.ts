@@ -38,4 +38,71 @@ export class DeliveryController {
       next(err);
     }
   }
+
+  static async getProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const profile = await DeliveryService.getProfile(userId);
+      return sendSuccess(res, profile, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async toggleStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const { isAvailable, latitude, longitude } = req.body;
+      const result = await DeliveryService.toggleAvailability(userId, Boolean(isAvailable), latitude, longitude);
+      return sendSuccess(res, result, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async updateLocation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const { latitude, longitude, accuracy, deliveryId } = req.body;
+      if (latitude === undefined || longitude === undefined) {
+        return res.status(400).json({ success: false, error: { message: 'Latitude and Longitude are required' } });
+      }
+      const result = await DeliveryService.updateLocation(userId, Number(latitude), Number(longitude), accuracy, deliveryId);
+      return sendSuccess(res, result, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getEarnings(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const earnings = await DeliveryService.getEarnings(userId);
+      return sendSuccess(res, earnings, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const statusFilter = req.query.status as string;
+      const history = await DeliveryService.getDeliveryHistory(userId, statusFilter);
+      return sendSuccess(res, history, 200);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async createSupportTicket(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const { category, description, deliveryId } = req.body;
+      const ticket = await DeliveryService.createSupportTicket(userId, category, description, deliveryId);
+      return sendSuccess(res, ticket, 201);
+    } catch (err) {
+      next(err);
+    }
+  }
 }

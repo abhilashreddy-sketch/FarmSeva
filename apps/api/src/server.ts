@@ -95,7 +95,7 @@ app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/seller/marketplace', sellerMarketplaceRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/logistics', deliveryRoutes);
+app.use('/api/v1', deliveryRoutes);
 app.use('/api/v1', cropProblemRoutes);
 app.use('/api/v1', consultationRoutes);
 app.use('/api/v1', expertRoutes);
