@@ -4,17 +4,17 @@ import path from 'path';
 // Load .env file from root directory if present
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const JWT_SECRET = process.env.JWT_SECRET || 'farm-seva-dev-secret-key-change-in-production-min-32-chars-long';
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'farm-seva-refresh-secret-key-change-in-production';
-const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || 'farm-seva-default-32-byte-secret-key-prod!!';
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres.dyzcxyrbfdkhmxudqehf:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true';
-const DIRECT_URL = process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgresql://postgres.dyzcxyrbfdkhmxudqehf:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres';
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dyzcxyrbfdkhmxudqehf.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const CORS_ORIGINS = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,https://farm-seva-web.vercel.app';
+const NODE_ENV = (process.env.NODE_ENV || 'development').trim();
+const JWT_SECRET = (process.env.JWT_SECRET || 'farm-seva-dev-secret-key-change-in-production-min-32-chars-long').trim();
+const REFRESH_TOKEN_SECRET = (process.env.REFRESH_TOKEN_SECRET || 'farm-seva-refresh-secret-key-change-in-production').trim();
+const ENCRYPTION_SECRET = (process.env.ENCRYPTION_SECRET || 'farm-seva-default-32-byte-secret-key-prod!!').trim();
+const DATABASE_URL = (process.env.DATABASE_URL || 'postgresql://postgres.dyzcxyrbfdkhmxudqehf:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true').trim();
+const DIRECT_URL = (process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgresql://postgres.dyzcxyrbfdkhmxudqehf:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres').trim();
+const SUPABASE_URL = (process.env.SUPABASE_URL || 'https://dyzcxyrbfdkhmxudqehf.supabase.co').trim();
+const SUPABASE_ANON_KEY = (process.env.SUPABASE_ANON_KEY || '').trim();
+const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+const REDIS_URL = (process.env.REDIS_URL || 'redis://localhost:6379').trim();
+const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001,https://farm-seva-web.vercel.app').trim();
 
 // Strict Startup Validation for Production
 if (NODE_ENV === 'production') {

@@ -40,7 +40,14 @@ export class RazorpayPaymentProvider implements PaymentProvider {
     razorpayPaymentId: string;
     razorpaySignature: string;
   }): boolean {
+    const isProductionEnv = (process.env.NODE_ENV || '').trim() === 'production';
+    const isRealCredentialsSet = !!process.env.RAZORPAY_KEY_ID && !!process.env.RAZORPAY_KEY_SECRET;
+
     if (params.razorpaySignature === 'mock_valid_signature_for_test') {
+      if (isProductionEnv && isRealCredentialsSet) {
+        console.warn('⚠️ Rejected mock payment signature in production environment with configured Razorpay credentials');
+        return false;
+      }
       return true;
     }
     const hmac = crypto.createHmac('sha256', this.keySecret);

@@ -295,17 +295,22 @@ export default function FarmerMarketplacePage() {
             <Card key={product.id} hoverable padding="none" className="flex flex-col justify-between overflow-hidden group">
               <div>
                 <div className="relative bg-slate-100 h-48 flex items-center justify-center p-4">
-                  {product.images && product.images.length > 0 ? (
+                  {product.images && product.images.length > 0 && (product.images[0].imageUrl || product.images[0].url) ? (
                     <img
-                      src={product.images[0].imageUrl}
+                      src={product.images[0].imageUrl || product.images[0].url}
                       alt={product.name}
                       className="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
+                      onError={(e: any) => {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextSibling) {
+                          e.currentTarget.nextSibling.style.display = 'flex';
+                        }
+                      }}
                     />
-                  ) : (
-                    <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-3xl shadow-sm">
-                      🧪
-                    </div>
-                  )}
+                  ) : null}
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center text-3xl shadow-sm" style={{ display: product.images && product.images.length > 0 ? 'none' : 'flex' }}>
+                    🧪
+                  </div>
 
                   <div className="absolute top-3 left-3 flex flex-col gap-1">
                     {getToxicityBadge(product.compliance?.toxicityClass)}
