@@ -48,6 +48,12 @@ async function runAllPhaseTests() {
   await prisma.auditLog.deleteMany({});
   await prisma.refreshToken.deleteMany({});
   await prisma.passwordResetToken.deleteMany({});
+  await prisma.payment.deleteMany({});
+  await prisma.delivery.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
+  await prisma.cartItem.deleteMany({});
+  await prisma.cart.deleteMany({});
   await prisma.crop.deleteMany({});
   await prisma.farmField.deleteMany({});
   await prisma.farm.deleteMany({});
