@@ -1,77 +1,111 @@
 'use client';
 
 import React, { useState } from 'react';
-import { API_BASE_URL } from '../../config/api';
+import { useRouter } from 'next/navigation';
+import { Card, TextInput, Button, Toast } from '@farm-seva/shared-ui';
+import { ShieldCheck, Lock, Mail, ArrowRight } from 'lucide-react';
+import { apiFetch, setAuthToken } from '../../lib/api-client';
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Authenticating administrator credentials...');
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (data.success && data.data?.user?.role === 'ADMIN') {
-        setStatus(`Administrator authenticated successfully as ${data.data.user.fullName}`);
-      } else if (data.success) {
-        setStatus(`Access Denied: Account role '${data.data.user.role}' is not an Administrator.`);
-      } else {
-        setStatus(`Auth Error: ${data.error?.message || 'Authentication failed'}`);
-      }
-    } catch (err: any) {
-      setStatus('Unable to connect to shared Express REST API');
+    if (!email || !password) {
+      setToast({ message: 'Please enter both email and password', type: 'error' });
+      return;
+    }
+
+    setLoading(true);
+    setToast(null);
+
+    const res = await apiFetch<{ token: string; user: { id: string; role: string; name: string } }>('/api/v1/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    setLoading(false);
+
+    if (res.success && res.data?.token) {
+      setAuthToken(res.data.token);
+      setToast({ message: 'Authentication successful! Redirecting to Control Desk...', type: 'success' });
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1000);
+    } else {
+      setToast({ message: res.error || 'Login failed. Please verify admin credentials.', type: 'error' });
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 space-y-6">
+    <div className="max-w-md mx-auto py-8 space-y-6">
+      {toast && (
+        <Toast
+          title={toast.type === 'success' ? 'Success' : 'Error'}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-black text-slate-900">Protected Admin Login</h1>
-        <p className="text-xs text-slate-600 font-medium">Operations & Governance Desk Authentication</p>
+        <div className="inline-flex items-center justify-center p-3 bg-slate-900 rounded-2xl text-emerald-400 mb-2 border border-slate-800">
+          <ShieldCheck className="w-8 h-8" />
+        </div>
+        <h1 className="text-2xl font-black text-slate-900">Administrator Sign In</h1>
+        <p className="text-xs text-slate-500 font-medium">
+          Privileged access to FARM SEVA operational control center
+        </p>
       </div>
 
-      <form onSubmit={handleLogin} className="p-6 bg-white border border-slate-300 rounded-2xl space-y-4 shadow-xl">
-        {status && (
-          <div className="p-3 bg-slate-900 text-amber-400 text-xs font-semibold rounded-xl border border-slate-700">
-            {status}
+      <Card className="p-6 border-slate-200 shadow-md">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <TextInput
+              label="Admin Email Address"
+              type="email"
+              placeholder="admin@farmseva.com"
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
+              required
+            />
           </div>
-        )}
 
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Administrator Email</label>
-          <input
-            type="email"
-            placeholder="admin@farmseva.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
-          />
+          <div>
+            <TextInput
+              label="Account Password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              leftIcon={<Lock className="w-4 h-4 text-slate-400" />}
+              required
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold"
+            isLoading={loading}
+            rightIcon={<ArrowRight className="w-4 h-4" />}
+          >
+            Authenticate & Open Control Desk
+          </Button>
+        </form>
+
+        <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+          <p className="text-[11px] text-slate-400 font-medium">
+            FARM SEVA Platform RBAC Enforcement • Authorized Access Only
+          </p>
         </div>
-
-        <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1">Master Password</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
-            required
-          />
-        </div>
-
-        <button type="submit" className="w-full py-2.5 bg-slate-900 text-amber-400 font-bold text-xs rounded-xl hover:bg-slate-800">
-          Authenticate System Administrator
-        </button>
-      </form>
+      </Card>
     </div>
   );
 }
