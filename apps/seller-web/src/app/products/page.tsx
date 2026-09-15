@@ -22,24 +22,25 @@ export default function SellerProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadListings() {
-      const token = getAuthToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      const res = await apiFetch<any[]>('/api/v1/seller/marketplace/listings');
-      if (res.success && Array.isArray(res.data)) {
-        setListings(res.data);
-      } else if (!res.success) {
-        setError(res.error || 'Failed to fetch merchant product listings.');
-      }
+  const loadListings = async () => {
+    const token = getAuthToken();
+    if (!token) {
       setIsLoading(false);
+      return;
     }
+
+    setIsLoading(true);
+    setError(null);
+    const res = await apiFetch<any[]>('/api/v1/seller/marketplace/listings');
+    if (res.success && Array.isArray(res.data)) {
+      setListings(res.data);
+    } else if (!res.success) {
+      setError(res.error || 'Failed to fetch merchant product listings.');
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
     loadListings();
   }, []);
 
@@ -131,7 +132,7 @@ export default function SellerProductsPage() {
       {isLoading ? (
         <CardSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={() => window.location.reload()} />
+        <ErrorState message={error} onRetry={loadListings} />
       ) : filtered.length > 0 ? (
         <Table
           columns={tableColumns}

@@ -21,25 +21,26 @@ export default function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadInventory() {
-      const token = getAuthToken();
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-
-      const res = await apiFetch<any[]>('/api/v1/seller/marketplace/listings');
-      if (res.success && Array.isArray(res.data)) {
-        setListings(res.data);
-      } else if (!res.success) {
-        setError(res.error || 'Failed to fetch inventory stock records.');
-      }
+  const loadInventory = async () => {
+    const token = getAuthToken();
+    if (!token) {
       setIsLoading(false);
+      return;
     }
+
+    setIsLoading(true);
+    setError(null);
+
+    const res = await apiFetch<any[]>('/api/v1/seller/marketplace/listings');
+    if (res.success && Array.isArray(res.data)) {
+      setListings(res.data);
+    } else if (!res.success) {
+      setError(res.error || 'Failed to fetch inventory stock records.');
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
     loadInventory();
   }, []);
 
@@ -145,7 +146,7 @@ export default function InventoryPage() {
       {isLoading ? (
         <CardSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={() => window.location.reload()} />
+        <ErrorState message={error} onRetry={loadInventory} />
       ) : filteredListings.length > 0 ? (
         <Table columns={columns} data={filteredListings} rowKey={(item) => item.id} />
       ) : (

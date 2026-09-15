@@ -11,9 +11,11 @@ import {
 } from '@farm-seva/shared-ui';
 import { Store, Package, ShoppingCart, Plus, ArrowRight, DollarSign, ShieldCheck, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { apiFetch, getAuthToken, removeAuthToken } from '../../lib/api-client';
 
 export default function SellerDashboardPage() {
+  const router = useRouter();
   const [analytics, setAnalytics] = useState<any>(null);
   const [listings, setListings] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export default function SellerDashboardPage() {
 
   const handleLogout = () => {
     removeAuthToken();
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   if (!getAuthToken()) {
@@ -58,7 +60,7 @@ export default function SellerDashboardPage() {
           title="Sign In Required"
           description="Please sign in with your Seller account to access the Merchant Console."
           actionLabel="Sign In Now"
-          onAction={() => window.location.href = '/login'}
+          onAction={() => router.push('/login')}
         />
       </div>
     );
@@ -178,7 +180,7 @@ export default function SellerDashboardPage() {
             title="No Pending Orders"
             description="You have fulfilled all current farmer orders for your district."
             actionLabel="View All Orders"
-            onAction={() => window.location.href = '/orders'}
+            onAction={() => router.push('/orders')}
           />
         )}
       </div>
@@ -216,7 +218,7 @@ export default function SellerDashboardPage() {
             title="No Product Listings Active"
             description="Publish your first seed, fertilizer, or farm tool listing to start receiving district farmer orders."
             actionLabel="Add First Product"
-            onAction={() => window.location.href = '/products/new'}
+            onAction={() => router.push('/products/new')}
           />
         )}
       </div>
