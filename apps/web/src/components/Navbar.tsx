@@ -67,7 +67,7 @@ export default function Navbar() {
                       isActive('/farmer') ? 'bg-emerald-800 text-amber-300 shadow-inner' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.dashboard', 'Dashboard')}
+                    {t('navbar.dashboard', 'Home')}
                   </Link>
                   <Link
                     href="/farmer/marketplace"
@@ -75,7 +75,7 @@ export default function Navbar() {
                       isActive('/farmer/marketplace') ? 'bg-amber-500 text-emerald-950 font-black shadow' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.marketplace', 'Marketplace')}
+                    {t('navbar.marketplace', 'Buy Inputs')}
                   </Link>
                   <Link
                     href="/farmer/crops"
@@ -86,12 +86,12 @@ export default function Navbar() {
                     {t('navbar.myCrops', 'My Crops')}
                   </Link>
                   <Link
-                    href="/crop-doctor"
+                    href="/farmer/orders"
                     className={`px-3 py-2 rounded-xl transition ${
-                      isActive('/crop-doctor') ? 'bg-amber-400 text-emerald-950 font-black shadow' : 'bg-emerald-800/80 hover:bg-emerald-800 text-amber-300'
+                      isActive('/farmer/orders') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    🌱 {t('navbar.cropDoctor', 'AI Crop Doctor')}
+                    {t('navbar.orders', 'Orders')}
                   </Link>
                   <Link
                     href="/farmer/crop-problems"
@@ -99,7 +99,7 @@ export default function Navbar() {
                       isActive('/farmer/crop-problems') ? 'bg-emerald-800 text-amber-300' : 'hover:bg-emerald-800/60 text-emerald-100'
                     }`}
                   >
-                    {t('navbar.cropAdvisory', 'Crop Advisory')}
+                    {t('navbar.cropAdvisory', 'Advisory')}
                   </Link>
                 </>
               )}

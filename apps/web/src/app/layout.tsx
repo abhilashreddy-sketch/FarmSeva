@@ -4,6 +4,7 @@ import { LanguageProvider } from '../context/LanguageContext';
 import { AuthProvider } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { FloatingCropDoctor } from '../components/FloatingCropDoctor';
 
 export const metadata = {
   title: 'FARM SEVA - Multi-Channel Agricultural Marketplace & Crop Advisory',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </main>
             <Footer />
+            <FloatingCropDoctor />
           </LanguageProvider>
         </AuthProvider>
       </body>

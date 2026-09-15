@@ -29,6 +29,7 @@ const cropDoctorRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => (req as any).user?.id || req.ip || 'anonymous',
+  validate: false,
 });
 
 // Protect all Crop Doctor routes with Authentication

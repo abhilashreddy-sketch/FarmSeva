@@ -20,6 +20,7 @@ import expertRoutes from './routes/expert-routes';
 import notificationRoutes from './routes/notification-routes';
 import businessRoutes from './routes/business-routes';
 import healthRoutes from './routes/health-routes';
+import publicRoutes from './routes/public-routes';
 import kycRoutes from './routes/kyc-routes';
 import cropDoctorRoutes from './routes/crop-doctor-routes';
 import { FarmerController } from './controllers/farmer-controller';
@@ -81,6 +82,7 @@ app.get('/ready', HealthController.getReady);
 
 // API V1 Route Mounts & Legacy Alias Mounts
 app.use('/api/v1', healthRoutes);
+app.use('/api/v1', publicRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/kyc', kycRoutes);
