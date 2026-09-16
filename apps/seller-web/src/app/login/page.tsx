@@ -6,6 +6,7 @@ import { Phone, Lock, LogIn, ArrowRight, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { setAuthToken } from '../../lib/api-client';
+import { API_BASE_URL } from '../../config/api';
 
 export default function SellerLoginPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function SellerLoginPage() {
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password }),

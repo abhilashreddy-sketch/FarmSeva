@@ -6,6 +6,7 @@ import { User, Phone, Lock, Store, FileText, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { setAuthToken } from '../../lib/api-client';
+import { API_BASE_URL } from '../../config/api';
 
 export default function SellerRegisterPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function SellerRegisterPage() {
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

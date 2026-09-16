@@ -26,6 +26,7 @@ import {
   Percent,
 } from 'lucide-react';
 import { apiFetch, getAuthToken } from '../../lib/api-client';
+import { API_BASE_URL } from '../../config/api';
 
 interface RevenueMetrics {
   grossGMV?: number;
@@ -180,7 +181,7 @@ export default function AdminReportsPage() {
   const handleExportCSV = () => {
     const token = getAuthToken();
     if (!token) return;
-    window.open(`http://localhost:4000/api/v1/admin/business/reports/export?token=${token}`, '_blank');
+    window.open(`${API_BASE_URL}/api/v1/admin/business/reports/export?token=${token}`, '_blank');
   };
 
   return (

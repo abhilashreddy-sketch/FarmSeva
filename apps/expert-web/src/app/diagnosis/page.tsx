@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Button, TextInput, Badge, Toast } from '@farm-seva/shared-ui';
 import { Activity, Upload, Sparkles, Stethoscope } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 export default function DiagnosisToolPage() {
   const [crop, setCrop] = useState('Paddy (Rice)');
@@ -38,7 +39,7 @@ export default function DiagnosisToolPage() {
     formData.append('farmerNotes', farmerNotes);
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/crop-doctor/analyze', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/crop-doctor/analyze`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('farm_seva_token') || ''}`,

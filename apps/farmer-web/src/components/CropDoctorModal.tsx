@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Sprout, X, Upload, Send, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button, Modal, Badge } from '@farm-seva/shared-ui';
 import { apiFetch } from '../lib/api-client';
+import { API_BASE_URL } from '../config/api';
 
 export const CropDoctorModal: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +39,7 @@ export const CropDoctorModal: React.FC = () => {
 
     const token = localStorage.getItem('farm_seva_token');
     try {
-      const res = await fetch('http://localhost:4000/api/v1/crop-doctor/analyze', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/crop-doctor/analyze`, {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
