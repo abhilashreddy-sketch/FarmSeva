@@ -1,6 +1,8 @@
 import path from 'path';
 import crypto from 'crypto';
 import { ApiError } from '../middleware/error-middleware';
+import { env } from '../config/env';
+import { Logger } from '../utils/logger';
 
 export interface StorageFileMeta {
   documentId: string;
@@ -9,6 +11,7 @@ export interface StorageFileMeta {
   storageReference: string;
   verificationStatus: string;
   uploadedAt: Date;
+  downloadUrl?: string;
 }
 
 export class StorageService {
@@ -20,6 +23,13 @@ export class StorageService {
   ];
 
   private static MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+
+  // Production Supabase Storage Buckets
+  public static BUCKETS = {
+    PRODUCT_IMAGES: 'product-images',
+    CROP_PROBLEM_IMAGES: 'crop-problem-images',
+    KYC_DOCUMENTS: 'kyc-documents', // Private bucket
+  } as const;
 
   /**
    * Validates document MIME type and file size.
@@ -51,21 +61,76 @@ export class StorageService {
   }
 
   /**
-   * Stores a document in private storage abstraction layer.
-   * In production mode, this uploads to S3/GCS bucket; in dev/local mode, saves to private uploads folder.
+   * Uploads object to Supabase Storage bucket via REST API (Server-side execution).
+   */
+  private static async uploadToSupabaseBucket(params: {
+    bucket: string;
+    objectKey: string;
+    fileBuffer: Buffer;
+    mimeType: string;
+  }): Promise<{ url: string; key: string }> {
+    const supabaseUrl = env.SUPABASE_URL;
+    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new ApiError('STORAGE_ERROR', 'Supabase credentials missing for cloud storage upload', 500);
+    }
+
+    const uploadEndpoint = `${supabaseUrl}/storage/v1/object/${params.bucket}/${params.objectKey}`;
+
+    try {
+      const response = await fetch(uploadEndpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          apikey: serviceRoleKey,
+          'Content-Type': params.mimeType,
+          'x-upsert': 'true',
+        },
+        body: params.fileBuffer,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        Logger.error(`[SupabaseStorage] Upload failed for ${params.bucket}/${params.objectKey}: ${errorText}`);
+        throw new ApiError('STORAGE_UPLOAD_FAILED', `Supabase Storage upload failed: ${errorText}`, 502);
+      }
+
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/${params.bucket}/${params.objectKey}`;
+      Logger.info(`[SupabaseStorage] Successfully uploaded ${params.objectKey} to bucket ${params.bucket}`);
+      return { url: publicUrl, key: params.objectKey };
+    } catch (err: any) {
+      if (err instanceof ApiError) throw err;
+      Logger.error(`[SupabaseStorage] Network error uploading to ${params.bucket}: ${err.message}`);
+      throw new ApiError('STORAGE_NETWORK_ERROR', `Storage network error: ${err.message}`, 502);
+    }
+  }
+
+  /**
+   * Stores a KYC document in private storage abstraction layer.
    */
   static async storePrivateDocument(
     userId: string,
     documentType: string,
     originalFilename: string,
     mimeType: string,
-    bufferSize: number
+    bufferSize: number,
+    fileBuffer?: Buffer
   ): Promise<StorageFileMeta> {
     this.validateDocument(mimeType, bufferSize);
 
     const safeName = this.sanitizeFilename(originalFilename);
     const uniqueKey = `${documentType.toLowerCase()}_${userId.substring(0, 8)}_${crypto.randomBytes(8).toString('hex')}_${safeName}`;
-    const storageReference = `private://documents/kyc/${userId}/${uniqueKey}`;
+    const storageReference = `supabase://kyc-documents/${userId}/${uniqueKey}`;
+
+    if (env.STORAGE_PROVIDER === 'SUPABASE_STORAGE' && fileBuffer) {
+      await this.uploadToSupabaseBucket({
+        bucket: this.BUCKETS.KYC_DOCUMENTS,
+        objectKey: `${userId}/${uniqueKey}`,
+        fileBuffer,
+        mimeType,
+      });
+    }
 
     return {
       documentId: `doc_${crypto.randomUUID()}`,
@@ -78,12 +143,37 @@ export class StorageService {
   }
 
   /**
-   * Generates a temporary authorized download URL for private documents.
+   * Generates a temporary authorized signed download URL for private KYC documents.
    */
-  static getSignedAccessUrl(storageReference: string, userId: string, requesterRole: string): string {
-    // Prevent cross-user access unless requester is ADMIN
+  static async getSignedAccessUrl(storageReference: string, userId: string, requesterRole: string): Promise<string> {
     if (!storageReference.includes(userId) && requesterRole !== 'ADMIN') {
       throw new ApiError('ACCESS_DENIED', 'Unauthorized attempt to access private document', 403);
+    }
+
+    if (env.STORAGE_PROVIDER === 'SUPABASE_STORAGE' && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const objectPath = storageReference.replace(/^supabase:\/\/kyc-documents\//, '');
+        const signEndpoint = `${env.SUPABASE_URL}/storage/v1/object/sign/${this.BUCKETS.KYC_DOCUMENTS}/${objectPath}`;
+        
+        const response = await fetch(signEndpoint, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ expiresIn: 3600 }),
+        });
+
+        if (response.ok) {
+          const data: any = await response.json();
+          if (data.signedURL) {
+            return `${env.SUPABASE_URL}/storage/v1${data.signedURL}`;
+          }
+        }
+      } catch (err) {
+        Logger.error('[SupabaseStorage] Signed URL generation failed, falling back to proxy route');
+      }
     }
 
     const token = crypto.createHash('sha256').update(`${storageReference}:${Date.now()}`).digest('hex').substring(0, 32);
@@ -91,18 +181,28 @@ export class StorageService {
   }
 
   /**
-   * Upload file abstraction (validates MIME type and sanitizes against path traversal).
+   * Upload crop problem / general diagnostic photo.
    */
   static async uploadFile(params: { fileName: string; fileBuffer: Buffer; mimeType: string }) {
-    if (!this.ALLOWED_MIME_TYPES.includes(params.mimeType.toLowerCase())) {
-      throw new ApiError(
-        'VALIDATION_ERROR',
-        `File type '${params.mimeType}' is not supported. Allowed formats: JPG, PNG, WEBP, PDF`,
-        400
-      );
-    }
+    this.validateDocument(params.mimeType, params.fileBuffer.length);
     const sanitizedKey = this.sanitizeFilename(params.fileName);
-    const uniqueKey = `file_${crypto.randomBytes(8).toString('hex')}_${sanitizedKey}`;
+    const uniqueKey = `crop_problem_${crypto.randomBytes(8).toString('hex')}_${sanitizedKey}`;
+
+    if (env.STORAGE_PROVIDER === 'SUPABASE_STORAGE') {
+      const res = await this.uploadToSupabaseBucket({
+        bucket: this.BUCKETS.CROP_PROBLEM_IMAGES,
+        objectKey: uniqueKey,
+        fileBuffer: params.fileBuffer,
+        mimeType: params.mimeType,
+      });
+      return {
+        url: res.url,
+        key: res.key,
+        mimeType: params.mimeType,
+        size: params.fileBuffer.length,
+      };
+    }
+
     return {
       url: `/uploads/${uniqueKey}`,
       key: uniqueKey,
@@ -137,6 +237,21 @@ export class StorageService {
     const sanitizedName = this.sanitizeFilename(params.fileName);
     const uniqueKey = `product_${crypto.randomUUID()}_${sanitizedName}`;
 
+    if (env.STORAGE_PROVIDER === 'SUPABASE_STORAGE') {
+      const res = await this.uploadToSupabaseBucket({
+        bucket: this.BUCKETS.PRODUCT_IMAGES,
+        objectKey: uniqueKey,
+        fileBuffer: params.fileBuffer,
+        mimeType: normalizedMime,
+      });
+      return {
+        url: res.url,
+        key: res.key,
+        mimeType: normalizedMime,
+        size: params.fileBuffer.length,
+      };
+    }
+
     return {
       url: `/uploads/products/${uniqueKey}`,
       key: uniqueKey,
@@ -145,4 +260,5 @@ export class StorageService {
     };
   }
 }
+
 

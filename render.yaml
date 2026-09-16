@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: farm-seva-api
+    env: node
+    region: singapore
+    plan: starter
+    buildCommand: npm ci && npm run build --workspace=@farm-seva/shared && npx prisma generate && npm run build --workspace=@farm-seva/api
+    startCommand: node apps/api/dist/server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: STORAGE_PROVIDER
+        value: SUPABASE_STORAGE
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: ENCRYPTION_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://farmer.farmseva.com,https://seller.farmseva.com,https://expert.farmseva.com,https://delivery.farmseva.com,https://admin.farmseva.com,https://farmseva.com
+      - key: GEMINI_API_KEY
+        sync: false

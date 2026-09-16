@@ -57,7 +57,7 @@ export const env = {
     : ['Andhra Pradesh', 'Telangana', 'Karnataka', 'Maharashtra', 'Tamil Nadu'],
   
   // Storage & External Provider Mode Flags
-  STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || 'LOCAL', // S3, R2, LOCAL, SUPABASE_STORAGE
+  STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || (process.env.SUPABASE_URL ? 'SUPABASE_STORAGE' : 'LOCAL'), // SUPABASE_STORAGE, S3, R2, LOCAL
   S3_BUCKET_NAME: process.env.S3_BUCKET_NAME || '',
   S3_REGION: process.env.S3_REGION || 'ap-south-1',
   
