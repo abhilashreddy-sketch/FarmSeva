@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "prebuild": "tsc -p ../../packages/shared/tsconfig.json",
+    "prebuild": "tsc -p ../../packages/shared/tsconfig.json && npx prisma generate --schema=../../prisma/schema.prisma",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest --runInBand"

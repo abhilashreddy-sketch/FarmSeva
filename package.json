@@ -9,8 +9,11 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build:packages && npx prisma generate && npm run build --workspaces --if-present",
+    "build:api": "npm run build --workspace=@farm-seva/shared && npx prisma generate && npm run build --workspace=@farm-seva/api",
+    "build:packages": "npm run build --workspace=@farm-seva/shared && npm run build --workspace=@farm-seva/shared-ui",
     "start": "npm run start --workspaces --if-present",
+    "start:api": "node apps/api/dist/server.js",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npx tsx apps/api/src/__tests__/run-tests.ts",
     "db:generate": "npx prisma generate",
