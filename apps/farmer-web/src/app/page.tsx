@@ -10,32 +10,22 @@ import {
   ShieldCheck,
   ArrowRight,
   ArrowUpRight,
-  CheckCircle2,
   Calendar,
   Layers,
   Sparkles,
   Camera,
   FileText,
-  MapPin,
   ChevronRight,
   Menu,
   X,
   Lock,
-  Search,
-  Globe,
-  Activity,
   BadgeCheck,
   Zap,
-  Award,
   ScanLine,
   Leaf,
-  Clock,
-  HeartHandshake,
-  Sliders,
   Check,
-  Tag,
-  AlertTriangle,
-  Info,
+  Upload,
+  HelpCircle,
 } from 'lucide-react';
 import { apiFetch } from '../lib/api-client';
 
@@ -74,12 +64,12 @@ export default function FarmerPublicLandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-  
-  // Interactive Crop Doctor Simulator state
-  const [activeCropCase, setActiveCropCase] = useState<number>(0);
-  
-  // Interactive My Farm Hierarchy state
-  const [activeFarmStage, setActiveFarmStage] = useState<number>(1);
+
+  // Interactive Crop Doctor demonstration state (Non-diagnostic UI flow)
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(0);
+
+  // Interactive My Farm Hierarchy state (Structural architectural model)
+  const [activeFarmLevel, setActiveFarmLevel] = useState<number>(0);
 
   // Fetch real categories and products from FARM SEVA REST API
   useEffect(() => {
@@ -119,86 +109,81 @@ export default function FarmerPublicLandingPage() {
     ? products
     : products.filter(p => p.category?.slug === selectedCategory || p.category?.name.toLowerCase() === selectedCategory.toLowerCase());
 
-  // Crop Doctor Simulation Scenarios
-  const cropDoctorCases = [
+  // Crop Doctor Educational Workflow Steps (Non-diagnostic interface states)
+  const cropDoctorWorkflowSteps = [
     {
-      crop: 'Paddy (Rice)',
-      stage: 'Tillering Phase',
-      photoLabel: 'Leaf Lesion Sample #P-104',
-      symptom: 'Spindle-shaped elliptical lesions with grayish centers & brown margins',
-      detectedIssue: 'Rice Blast (Magnaporthe oryzae)',
-      confidence: 94,
-      severity: 'Moderate',
-      treatment: 'Apply systemic tricyclazole spray @ 120g/acre; maintain optimal field drainage.',
-      expertAction: 'Escalate to Plant Pathologist Dr. S. K. Narayana for confirmation',
+      step: '01',
+      title: 'Photo Ingestion',
+      badge: 'Input Phase',
+      desc: 'Capture or upload clear photos of affected leaves, stems or fruits from your smartphone or tablet.',
+      interfaceNote: 'Supports standard image formats with automated camera focus guides.',
     },
     {
-      crop: 'Cotton',
-      stage: 'Boll Formation',
-      photoLabel: 'Boll Surface Sample #C-208',
-      symptom: 'Flared squares with small entrance boreholes and dark granular excreta',
-      detectedIssue: 'Pink Bollworm (Pectinophora gossypiella)',
-      confidence: 91,
-      severity: 'High Alert',
-      treatment: 'Deploy pheromone traps (5/acre); apply approved bio-pesticide or spinosad formulation.',
-      expertAction: 'Direct case escalation to Regional Cotton Extension Center',
+      step: '02',
+      title: 'Visual Pre-Screening',
+      badge: 'AI Analysis',
+      desc: 'Computer vision algorithms analyze visual patterns, surface discoloration, and lesion morphology.',
+      interfaceNote: 'Automated feature extraction highlights candidate symptom areas.',
     },
     {
-      crop: 'Tomato',
-      stage: 'Vegetative Flowering',
-      photoLabel: 'Foliage Sample #T-089',
-      symptom: 'Target-like concentric rings on lower leaves with yellow halo',
-      detectedIssue: 'Early Blight (Alternaria solani)',
-      confidence: 96,
-      severity: 'Manageable',
-      treatment: 'Remove infected bottom leaves; spray copper oxychloride or bio-fungicide preventative.',
-      expertAction: 'University Agronomist verified advisory available on farmer timeline',
+      step: '03',
+      title: 'Problem Identification',
+      badge: 'Assessment',
+      desc: 'View preliminary symptom indicators, cultural management practices, and preventive guidelines.',
+      interfaceNote: 'Provides assistive insights for common agricultural crop challenges.',
+    },
+    {
+      step: '04',
+      title: 'Expert Escalation',
+      badge: 'Consultation',
+      desc: 'Directly escalate complex, ambiguous or severe cases to verified agricultural experts for tailored advice.',
+      interfaceNote: 'Case details, symptom history, and photos transfer seamlessly to the expert workstation.',
     },
   ];
 
-  // My Farm Multi-Tier Model
+  // My Farm Conceptual Architecture (Zero fake acreage/data)
   const farmHierarchyLevels = [
     {
       step: '01',
-      title: 'Farmer Profile',
-      scope: 'Ravi Kumar • Telangana',
-      desc: 'Centralized farmer identity with verified landholdings, Aadhaar KYC & mobile authentication.',
-      badge: 'Verified Farmer ID: FS-FMR-9842',
+      title: 'Farmer Account',
+      scope: 'Central Identity',
+      desc: 'Centralized farmer profile managing registered landholdings, mobile authentication, and communication preferences.',
+      badge: 'Identity Tier',
     },
     {
       step: '02',
       title: 'Registered Farm',
-      scope: 'Sri Lakshmi Farm • 14.5 Acres',
-      desc: 'Geo-referenced parcel with borewell irrigation, black alluvial soil, and seasonal rainfall log.',
-      badge: 'Borewell & Canal Irrigated',
+      scope: 'Land Parcel Container',
+      desc: 'Top-level landholding definition capturing geographical location, primary irrigation sources, and total parcel area.',
+      badge: 'Farm Tier',
     },
     {
       step: '03',
       title: 'Field Subdivision',
-      scope: 'North Plot (Field A) • 4.2 Acres',
-      desc: 'Granular field parcel mapped for precise resource allocation and micro-irrigation management.',
-      badge: 'Clay Loam • pH 7.2',
+      scope: 'Individual Field Parcels',
+      desc: 'Granular field subdivisions allowing independent management of soil types, slope characteristics, and micro-irrigation zones.',
+      badge: 'Field Tier',
     },
     {
       step: '04',
-      title: 'Active Crop Batch',
-      scope: 'Paddy (BPT-5204 Samba Masuri)',
-      desc: 'Sown July 15 • Expected Harvest Nov 20 • Stage: Active Panicle Initiation.',
-      badge: 'Day 64 of 135',
+      title: 'Crop Batch',
+      scope: 'Active Cultivation',
+      desc: 'Crop assignment for each field tracking sowing date, target harvest window, and seasonal variety classification.',
+      badge: 'Crop Tier',
     },
     {
       step: '05',
-      title: 'Current Needs',
-      scope: 'Top-dressing Nitrogen & Potassium',
-      desc: 'Soil moisture telemetry suggests 45mm deficit; nutrient uptake peak expected in next 7 days.',
-      badge: 'Irrigation & Fertilizer Scheduled',
+      title: 'Growth Stages',
+      scope: 'Biological Milestones',
+      desc: 'Sequential stage tracking from germination through vegetative growth, flowering, and maturity.',
+      badge: 'Stage Tier',
     },
     {
       step: '06',
-      title: 'Recommended Action',
-      scope: 'Apply 35kg MOP / Acre + Bio-Potash',
-      desc: 'Actionable prescription linked directly to verified local input dealers for door-step dispatch.',
-      badge: 'One-Click Sourcing Ready',
+      title: 'Farm Operations',
+      scope: 'Actionable Scheduling',
+      desc: 'Coordinated operational timeline for irrigation schedules, nutrient applications, pest interventions, and expert notes.',
+      badge: 'Operations Tier',
     },
   ];
 
@@ -227,7 +212,7 @@ export default function FarmerPublicLandingPage() {
                   </span>
                 </div>
                 <span className="text-[10px] font-semibold text-emerald-200/90 uppercase tracking-widest hidden sm:block">
-                  Smart Farming • Trusted Marketplace
+                  Smart Farming • Trusted Marketplace • Expert Support
                 </span>
               </div>
             </Link>
@@ -348,7 +333,7 @@ export default function FarmerPublicLandingPage() {
       {/* 2. FULL-SCREEN HERO SECTION                                              */}
       {/* ========================================================================= */}
       <section id="hero" className="relative overflow-hidden bg-gradient-to-b from-[#063828] via-[#064e3b] to-[#04241a] text-white pt-16 sm:pt-20 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8">
-        {/* Subtle Agricultural Grid & Mesh Overlay */}
+        {/* Subtle Background Mesh Overlay */}
         <div className="absolute inset-0 bg-mesh-dark opacity-80 pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.12)_1px,transparent_1px)] [background-size:32px_32px] pointer-events-none" />
 
@@ -359,7 +344,7 @@ export default function FarmerPublicLandingPage() {
             <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
               <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900/80 border border-emerald-500/40 text-amber-300 text-xs font-bold tracking-wider uppercase shadow-inner">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Next-Gen Agricultural Intelligence</span>
+                <span>Agricultural Operating Platform</span>
               </div>
 
               <h1 className="text-4xl sm:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] text-white">
@@ -396,19 +381,19 @@ export default function FarmerPublicLandingPage() {
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs font-semibold text-emerald-200">Farm Lifecycle</span>
+                  <span className="text-xs font-semibold text-emerald-200">Farm Structure</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs font-semibold text-emerald-200">AI Crop Doctor</span>
+                  <span className="text-xs font-semibold text-emerald-200">AI Pre-Screening</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs font-semibold text-emerald-200">Agronomists</span>
+                  <span className="text-xs font-semibold text-emerald-200">Expert Guidance</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
@@ -425,11 +410,11 @@ export default function FarmerPublicLandingPage() {
               </div>
             </div>
 
-            {/* Hero Right Composition: Modern AgriTech Multi-Card Suite */}
+            {/* Hero Right Composition: Non-Diagnostic UI Workflow Architecture */}
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-md lg:max-w-none space-y-4">
 
-                {/* Card 1: My Farm Real-Time Monitor */}
+                {/* Card 1: Farm Structure & Multi-Tier Model */}
                 <div className="bg-emerald-900/80 backdrop-blur-xl border border-emerald-600/40 rounded-3xl p-5 shadow-2xl text-white transform hover:-translate-y-1 transition-all">
                   <div className="flex items-center justify-between border-b border-emerald-700/60 pb-3 mb-3">
                     <div className="flex items-center gap-2.5">
@@ -438,30 +423,30 @@ export default function FarmerPublicLandingPage() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black uppercase tracking-wider text-amber-300">Farm Intelligence</h4>
-                        <p className="text-sm font-bold text-white">Sri Lakshmi Farm • Plot A</p>
+                        <p className="text-sm font-bold text-white">Hierarchical Land Organization</p>
                       </div>
                     </div>
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                      Active Sowing
+                      Structural Model
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="p-2 rounded-xl bg-black/20">
-                      <span className="text-[10px] text-emerald-300/80 block">Crop</span>
-                      <span className="font-bold">Paddy Samba</span>
+                      <span className="text-[10px] text-emerald-300/80 block">Hierarchy</span>
+                      <span className="font-bold">Farmer $\to$ Farm</span>
                     </div>
                     <div className="p-2 rounded-xl bg-black/20">
-                      <span className="text-[10px] text-emerald-300/80 block">Acreage</span>
-                      <span className="font-bold">4.2 Acres</span>
+                      <span className="text-[10px] text-emerald-300/80 block">Parcels</span>
+                      <span className="font-bold">Field $\to$ Crop</span>
                     </div>
                     <div className="p-2 rounded-xl bg-black/20">
-                      <span className="text-[10px] text-emerald-300/80 block">Health</span>
-                      <span className="font-bold text-emerald-400">96% Optimal</span>
+                      <span className="text-[10px] text-emerald-300/80 block">Timeline</span>
+                      <span className="font-bold text-emerald-400">Activity Log</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Card 2: AI Crop Doctor Live Diagnostic Scan */}
+                {/* Card 2: AI Pre-Screening Demonstration UI */}
                 <div className="bg-slate-900/90 backdrop-blur-xl border border-emerald-500/40 rounded-3xl p-5 shadow-2xl text-white transform hover:-translate-y-1 transition-all">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5">
@@ -470,21 +455,21 @@ export default function FarmerPublicLandingPage() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black uppercase tracking-wider text-emerald-300">Crop Doctor AI</h4>
-                        <p className="text-sm font-bold text-white">Visual Pre-Screening</p>
+                        <p className="text-sm font-bold text-white">Visual Pre-Screening Engine</p>
                       </div>
                     </div>
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      94% Confidence
+                      Awaiting Photo
                     </span>
                   </div>
                   <div className="bg-emerald-950/60 rounded-2xl p-3 border border-emerald-700/50 flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                      <AlertTriangle className="w-5 h-5" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                      <Camera className="w-5 h-5" />
                     </div>
                     <div className="text-xs">
-                      <p className="font-bold text-white">Detected: Rice Blast Early Stage</p>
-                      <p className="text-slate-300 text-[11px] mt-0.5">Bio-fungicide spray recommended within 48 hours.</p>
+                      <p className="font-bold text-white">Photo-Based Symptom Ingestion</p>
+                      <p className="text-slate-300 text-[11px] mt-0.5">Capture leaf or crop symptoms to initiate computer vision feature analysis.</p>
                     </div>
                   </div>
                 </div>
@@ -494,9 +479,9 @@ export default function FarmerPublicLandingPage() {
                   <div className="bg-emerald-900/80 backdrop-blur-xl border border-emerald-700/60 rounded-2xl p-3.5 text-xs text-white">
                     <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-1">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Verified Inputs</span>
+                      <span>Verified Sellers</span>
                     </div>
-                    <p className="text-[11px] text-slate-200">100% Licensed Regional Fertilizer & Seed Dealers</p>
+                    <p className="text-[11px] text-slate-200">Licensed Regional Fertilizer & Seed Dealers</p>
                   </div>
                   <div className="bg-emerald-900/80 backdrop-blur-xl border border-emerald-700/60 rounded-2xl p-3.5 text-xs text-white">
                     <div className="flex items-center gap-1.5 text-emerald-300 font-bold mb-1">
@@ -548,7 +533,7 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Create Your Farm</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Map your land hierarchically: Farmer → Farm → Field → Crop with soil type, acreage & water source.
+                  Map your land hierarchically: Farmer $\to$ Farm $\to$ Field $\to$ Crop with soil type, acreage & water source.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
@@ -569,7 +554,7 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Track Your Crop</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Follow biological growth stages from sowing, tillering, flowering through harvest with day-by-day logging.
+                  Follow biological growth stages from sowing through harvest with day-by-day activity logging.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
@@ -590,11 +575,11 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Crop Doctor</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Take a photo of pest damage or leaf lesions for instant computer-vision diagnostic pre-screening.
+                  Upload photos of crop symptoms for assistive computer vision pre-screening and early pattern detection.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-                <span>Confidence & symptom scoring</span>
+                <span>Visual symptom analysis</span>
               </div>
             </div>
 
@@ -611,11 +596,11 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Agricultural Expert</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Seamlessly escalate complex symptoms to certified agronomists for verified prescription guidance.
+                  Submit difficult cases to agricultural experts for verified review and tailored management guidance.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-                <span>Accredited university researchers</span>
+                <span>Verified expert consultations</span>
               </div>
             </div>
 
@@ -632,11 +617,11 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Marketplace</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Browse certified Seeds, Fertilizers, Crop Protection, Bio-inputs & Equipment from verified regional dealers.
+                  Browse certified Seeds, Fertilizers, Crop Protection, Bio-inputs & Equipment from verified regional sellers.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-                <span>100% genuine inputs</span>
+                <span>Verified dealer network</span>
               </div>
             </div>
 
@@ -653,11 +638,11 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Trusted Purchase</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Fair transparent pricing, live seller inventory verification, and secure online UPI/Card or Cash on Delivery.
+                  Transparent pricing, live seller inventory verification, and secure online UPI/Card or Cash on Delivery.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-                <span>Transparent billing & receipt</span>
+                <span>Structured item billing</span>
               </div>
             </div>
 
@@ -674,12 +659,12 @@ export default function FarmerPublicLandingPage() {
                 </div>
                 <h3 className="text-lg font-black text-stone-900 mb-2">Secured Delivery with OTP</h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed mb-4">
-                  Complete milestone visibility: Placed → Packing → Dispatch → Out for Delivery → bcrypt Delivery OTP Verification.
+                  Complete milestone visibility: Order Placed $\to$ Packing $\to$ Dispatch $\to$ Out for Delivery $\to$ bcrypt Delivery OTP Verification.
                 </p>
               </div>
               <div className="pt-3 border-t border-stone-200/80 flex items-center justify-between text-[11px] font-bold text-emerald-800">
                 <span>Handoff secured by farmer OTP</span>
-                <span className="text-amber-600">Zero stolen or misplaced orders</span>
+                <span className="text-amber-600">Zero unverified handoffs</span>
               </div>
             </div>
 
@@ -689,7 +674,7 @@ export default function FarmerPublicLandingPage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. CROP DOCTOR SHOWCASE — CINEMATIC INTERACTIVE SECTION                  */}
+      {/* 4. CROP DOCTOR SHOWCASE — CINEMATIC WORKFLOW VISUALIZATION                */}
       {/* ========================================================================= */}
       <section id="crop-doctor" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-stone-900 to-[#063828] text-white relative">
         <div className="max-w-7xl mx-auto relative z-10">
@@ -700,101 +685,97 @@ export default function FarmerPublicLandingPage() {
               <span>Intelligent Field Vision</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
-              Instant Diagnosis. Real Solutions.
+              AI-Assisted Pre-Screening. Expert Guidance.
             </h2>
             <p className="text-emerald-100/80 text-base sm:text-lg font-normal">
-              Capture symptoms with your smartphone camera. Our assistive computer vision detects disease signatures and suggests agronomist-vetted remedies.
+              Capture crop photos for automated visual pre-screening, understand symptom patterns, and seamlessly escalate complex cases to agricultural experts.
             </p>
           </div>
 
-          {/* Diagnostic Simulator Container */}
+          {/* Workflow Showcase Container */}
           <div className="bg-slate-900/90 border border-emerald-500/30 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
             
-            {/* Step Workflow Header Strip */}
-            <div className="mb-8 flex items-center justify-between flex-wrap gap-4 pb-6 border-b border-slate-800">
-              <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm font-bold text-slate-300 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-800 text-white shrink-0">1. Upload Photo</span>
-                <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-800 text-white shrink-0">2. AI Pre-Screening</span>
-                <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="px-3 py-1.5 rounded-xl bg-emerald-800 text-white shrink-0">3. Problem Identification</span>
-                <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="px-3 py-1.5 rounded-xl bg-amber-400 text-emerald-950 font-black shrink-0">4. Expert Escalation</span>
-              </div>
-
-              {/* Scenario Switcher Buttons */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-400 hidden lg:inline">Sample Cases:</span>
-                {cropDoctorCases.map((c, idx) => (
-                  <button
-                    key={c.crop}
-                    onClick={() => setActiveCropCase(idx)}
-                    className={`px-3 py-1 rounded-xl text-xs font-bold transition ${
-                      activeCropCase === idx
-                        ? 'bg-amber-400 text-emerald-950'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                    }`}
-                  >
-                    {c.crop}
-                  </button>
-                ))}
-              </div>
+            {/* Step Workflow Header Buttons */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8 pb-6 border-b border-slate-800">
+              {cropDoctorWorkflowSteps.map((ws, idx) => (
+                <button
+                  key={ws.step}
+                  onClick={() => setActiveWorkflowStep(idx)}
+                  className={`text-left p-4 rounded-2xl border transition-all duration-200 ${
+                    activeWorkflowStep === idx
+                      ? 'bg-amber-400 text-emerald-950 border-amber-300 shadow-md'
+                      : 'bg-slate-950/60 hover:bg-slate-800/80 text-white border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                      activeWorkflowStep === idx ? 'bg-emerald-950 text-amber-300' : 'bg-slate-800 text-emerald-300'
+                    }`}>
+                      Step {ws.step}
+                    </span>
+                    <span className="text-[10px] font-bold opacity-80">{ws.badge}</span>
+                  </div>
+                  <h4 className="text-sm font-bold truncate">{ws.title}</h4>
+                </button>
+              ))}
             </div>
 
-            {/* Diagnostic Details Grid */}
+            {/* Visual Workflow Demonstration Screen */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               
-              {/* Left Column: Visual Leaf Scanner Simulation */}
-              <div className="lg:col-span-6 relative bg-slate-950 rounded-2xl border border-slate-800 p-5 overflow-hidden">
+              {/* Left: Interactive Ingestion & Scanning Frame (Non-Diagnostic) */}
+              <div className="lg:col-span-6 relative bg-slate-950 rounded-2xl border border-slate-800 p-6 overflow-hidden">
                 <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3 mb-4">
                   <span className="font-mono font-bold text-emerald-400 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    LIVE SCANNER
+                    INTERFACE DEMONSTRATION
                   </span>
-                  <span>{cropDoctorCases[activeCropCase].photoLabel}</span>
+                  <span>{cropDoctorWorkflowSteps[activeWorkflowStep].title}</span>
                 </div>
 
-                <div className="relative h-64 sm:h-72 rounded-xl bg-gradient-to-br from-emerald-950/60 to-slate-900 flex items-center justify-center border border-emerald-500/20 overflow-hidden">
-                  <div className="text-center p-6 space-y-3 z-10">
-                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-400/30">
-                      <Leaf className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-white text-base">{cropDoctorCases[activeCropCase].crop}</p>
-                      <p className="text-xs text-emerald-300">{cropDoctorCases[activeCropCase].stage}</p>
-                    </div>
-                    <div className="inline-block px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300 text-xs">
-                      {cropDoctorCases[activeCropCase].symptom}
-                    </div>
+                <div className="relative h-64 sm:h-72 rounded-xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 flex flex-col items-center justify-center border border-dashed border-emerald-500/30 p-6 text-center space-y-3 overflow-hidden">
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center border border-emerald-400/20">
+                    <Upload className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-base">Crop Photo Upload Area</p>
+                    <p className="text-xs text-slate-400 max-w-xs mt-1">
+                      Drag and drop high-resolution photos of crop foliage, stem or fruit to begin.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-emerald-300 text-[11px] font-mono">
+                    <span>JPEG, PNG • Max 10MB</span>
                   </div>
 
-                  {/* Visual Laser Scanner Line */}
+                  {/* Visual Scanning Animation Overlay */}
                   <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent animate-scanner shadow-[0_0_15px_#f59e0b]" />
                 </div>
               </div>
 
-              {/* Right Column: AI Result & Treatment Prescription */}
+              {/* Right: Architectural Capabilities & Actions */}
               <div className="lg:col-span-6 space-y-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase font-extrabold tracking-wider text-amber-400">Analysis Result</span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-black">
-                    {cropDoctorCases[activeCropCase].confidence}% Match Confidence
+                  <span className="text-xs uppercase font-extrabold tracking-wider text-amber-400">
+                    Step {cropDoctorWorkflowSteps[activeWorkflowStep].step} Specification
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold">
+                    {cropDoctorWorkflowSteps[activeWorkflowStep].badge}
                   </span>
                 </div>
 
                 <div>
                   <h3 className="text-2xl sm:text-3xl font-black text-white">
-                    {cropDoctorCases[activeCropCase].detectedIssue}
+                    {cropDoctorWorkflowSteps[activeWorkflowStep].title}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Severity Level: <span className="text-amber-300 font-bold">{cropDoctorCases[activeCropCase].severity}</span>
+                  <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+                    {cropDoctorWorkflowSteps[activeWorkflowStep].desc}
                   </p>
                 </div>
 
                 <div className="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-2">
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wide">Recommended Course of Action</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wide">Interface Behavior</span>
                   <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                    {cropDoctorCases[activeCropCase].treatment}
+                    {cropDoctorWorkflowSteps[activeWorkflowStep].interfaceNote}
                   </p>
                 </div>
 
@@ -803,19 +784,19 @@ export default function FarmerPublicLandingPage() {
                     href="/advisory"
                     className="px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-emerald-950 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow"
                   >
-                    <span>Escalate Case to Agronomist</span>
+                    <span>Open Crop Doctor Tool</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link
                     href="/crops"
                     className="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-700 transition flex items-center justify-center gap-2"
                   >
-                    <span>Log into Crop Timeline</span>
+                    <span>View Crop Records</span>
                   </Link>
                 </div>
 
                 <p className="text-[11px] text-slate-400 italic">
-                  * Note: AI suggestions serve as an assistive decision-support layer. For high-value crops or severe outbreaks, verified expert escalation is strongly advised.
+                  * Important: Automated pre-screening is an assistive decision-support capability. Complex crop problems should be submitted to agricultural experts for verified diagnosis.
                 </p>
               </div>
 
@@ -842,7 +823,7 @@ export default function FarmerPublicLandingPage() {
                 Genuine Agricultural Inputs. Direct from Licensed Sellers.
               </h2>
               <p className="text-stone-600 text-base font-normal">
-                Authentic Seeds, Fertilizers, Crop Protection, Bio-inputs & Equipment verified by FARM SEVA inspectors.
+                Authentic Seeds, Fertilizers, Crop Protection, Bio-inputs & Equipment listed directly by verified regional sellers.
               </p>
             </div>
 
@@ -953,7 +934,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h3 className="text-xl font-black text-stone-900">Curating Regional Inventory</h3>
               <p className="text-stone-600 text-sm leading-relaxed">
-                Licensed agricultural retailers are currently updating real-time inventory for this category. Explore the full catalog or contact regional dealers directly.
+                Licensed agricultural retailers are currently updating real-time inventory for this category. Explore the full catalog or contact regional sellers directly.
               </p>
               <div className="pt-2">
                 <Link
@@ -981,25 +962,25 @@ export default function FarmerPublicLandingPage() {
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black uppercase tracking-wider">
                 <Stethoscope className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Certified Agronomist Advisory</span>
+                <span>Agricultural Expert Consultations</span>
               </div>
 
               <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900 leading-tight">
-                Connect Directly with University & KVK Experts.
+                Connect with Agricultural Experts.
               </h2>
 
               <p className="text-stone-600 text-base leading-relaxed">
-                When digital pre-screening highlights complex infections, FARM SEVA links your case to accredited agricultural scientists. Receive verified chemical and cultural prescriptions tailored to your soil and micro-climate.
+                When digital pre-screening highlights complex crop problems, submit your case for expert review. Receive guidance tailored to your crop and soil conditions.
               </p>
 
-              {/* 4 Feature Points */}
+              {/* 3 Factual Feature Points */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
                     <Check className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-stone-900">Multi-Language Agronomist Consultations</span>
+                    <span className="text-sm font-bold text-stone-900">Multi-Language Consultations</span>
                     <p className="text-xs text-stone-600">Guidance delivered in Telugu, Hindi, Kannada, Tamil, Marathi and English.</p>
                   </div>
                 </div>
@@ -1010,7 +991,7 @@ export default function FarmerPublicLandingPage() {
                   </div>
                   <div>
                     <span className="text-sm font-bold text-stone-900">Direct Farm Timeline Synchronization</span>
-                    <p className="text-xs text-stone-600">Prescriptions automatically update your daily irrigation and pesticide schedule.</p>
+                    <p className="text-xs text-stone-600">Prescriptions and guidance automatically synchronize with your farm schedule.</p>
                   </div>
                 </div>
 
@@ -1019,8 +1000,8 @@ export default function FarmerPublicLandingPage() {
                     <Check className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-stone-900">Verified Agronomist Credentials</span>
-                    <p className="text-xs text-stone-600">All participating specialists hold accredited M.Sc or Ph.D credentials in Agricultural Sciences.</p>
+                    <span className="text-sm font-bold text-stone-900">Structured Case History</span>
+                    <p className="text-xs text-stone-600">Experts examine symptom photos, past inputs, and farm records to provide informed guidance.</p>
                   </div>
                 </div>
               </div>
@@ -1030,13 +1011,13 @@ export default function FarmerPublicLandingPage() {
                   href="/advisory"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-sm shadow transition"
                 >
-                  <span>Consult an Agricultural Expert</span>
+                  <span>Submit a Crop Problem for Expert Review</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
 
-            {/* Workflow Card Visual */}
+            {/* Workflow Card Visual (Factual Process) */}
             <div className="lg:col-span-6 bg-[#fafaf9] border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
               <h3 className="text-sm font-black uppercase tracking-wider text-emerald-800">
                 The 5-Step Escalation Cycle
@@ -1046,40 +1027,40 @@ export default function FarmerPublicLandingPage() {
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-stone-200">
                   <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">1</div>
                   <div className="text-xs">
-                    <p className="font-bold text-stone-900">Crop Problem Reported</p>
-                    <p className="text-stone-500">Farmer captures symptom photos and logs affected acreage.</p>
+                    <p className="font-bold text-stone-900">Crop Problem Submitted</p>
+                    <p className="text-stone-500">Farmer captures symptom photos and describes affected crop areas.</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-stone-200">
                   <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">2</div>
                   <div className="text-xs">
-                    <p className="font-bold text-stone-900">AI Computer Vision Pre-Screening</p>
-                    <p className="text-stone-500">Automated classification isolates disease candidate and confidence score.</p>
+                    <p className="font-bold text-stone-900">Visual Pre-Screening</p>
+                    <p className="text-stone-500">Computer-vision models assist in automated symptom feature analysis.</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-stone-200">
                   <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">3</div>
                   <div className="text-xs">
-                    <p className="font-bold text-stone-900">Agronomist Case Assignment</p>
-                    <p className="text-stone-500">Specialist reviews soil history, past fertilizers & weather alerts.</p>
+                    <p className="font-bold text-stone-900">Expert Case Review</p>
+                    <p className="text-stone-500">Agricultural specialist reviews case history, soil context, and visual indicators.</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-stone-200">
                   <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">4</div>
                   <div className="text-xs">
-                    <p className="font-bold text-stone-900">Verified Actionable Prescription</p>
-                    <p className="text-stone-500">Dosage, cultural practice & safety withdrawal period prescribed.</p>
+                    <p className="font-bold text-stone-900">Tailored Guidance</p>
+                    <p className="text-stone-500">Expert provides tailored chemical, organic, or cultural management instructions.</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-stone-200">
                   <div className="w-8 h-8 rounded-xl bg-amber-400 text-emerald-950 flex items-center justify-center font-bold text-xs shrink-0">5</div>
                   <div className="text-xs">
-                    <p className="font-bold text-stone-900">Automatic Farm Timeline Sync</p>
-                    <p className="text-stone-500">Farmer dashboard updates tasks & alerts regional delivery partner.</p>
+                    <p className="font-bold text-stone-900">Farm Timeline Update</p>
+                    <p className="text-stone-500">Prescribed interventions update the farmer's operational schedule.</p>
                   </div>
                 </div>
               </div>
@@ -1092,7 +1073,7 @@ export default function FarmerPublicLandingPage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. MY FARM SECTION — MULTI-TIER INTELLIGENCE HIERARCHY                     */}
+      {/* 7. MY FARM SECTION — MULTI-TIER ARCHITECTURAL MODEL                      */}
       {/* ========================================================================= */}
       <section id="my-farm" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-[#063828] text-white">
         <div className="max-w-7xl mx-auto">
@@ -1106,7 +1087,7 @@ export default function FarmerPublicLandingPage() {
               Structured Farm Organization.
             </h2>
             <p className="text-emerald-100/80 text-base sm:text-lg font-normal">
-              FARM SEVA structures your agricultural operations across 6 interconnected tiers — from farmer identity to parcel-specific action.
+              FARM SEVA structures your agricultural operations across 6 interconnected structural tiers — from farmer identity to parcel-specific action.
             </p>
           </div>
 
@@ -1118,50 +1099,50 @@ export default function FarmerPublicLandingPage() {
               {farmHierarchyLevels.map((lvl, index) => (
                 <button
                   key={lvl.step}
-                  onClick={() => setActiveFarmStage(index)}
+                  onClick={() => setActiveFarmLevel(index)}
                   className={`w-full text-left p-4 rounded-2xl transition-all duration-200 border flex items-center justify-between ${
-                    activeFarmStage === index
+                    activeFarmLevel === index
                       ? 'bg-amber-400 text-emerald-950 border-amber-300 shadow-lg'
                       : 'bg-emerald-900/60 hover:bg-emerald-800/80 text-white border-emerald-700/50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-black px-2 py-0.5 rounded-md ${
-                      activeFarmStage === index ? 'bg-emerald-950 text-amber-300' : 'bg-emerald-800 text-emerald-300'
+                      activeFarmLevel === index ? 'bg-emerald-950 text-amber-300' : 'bg-emerald-800 text-emerald-300'
                     }`}>
                       {lvl.step}
                     </span>
                     <span className="text-sm font-bold">{lvl.title}</span>
                   </div>
-                  <ChevronRight className={`w-4 h-4 ${activeFarmStage === index ? 'text-emerald-950' : 'text-emerald-400'}`} />
+                  <ChevronRight className={`w-4 h-4 ${activeFarmLevel === index ? 'text-emerald-950' : 'text-emerald-400'}`} />
                 </button>
               ))}
             </div>
 
-            {/* Right Column: Active Stage Showcase Panel */}
+            {/* Right Column: Active Level Showcase Panel (Conceptual Architecture) */}
             <div className="lg:col-span-7 bg-slate-900/90 border border-emerald-500/40 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl space-y-6">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase text-amber-400 tracking-wider">Level Details</span>
-                  <span className="text-xs text-slate-400">• Step {farmHierarchyLevels[activeFarmStage].step} of 06</span>
+                  <span className="text-xs font-black uppercase text-amber-400 tracking-wider">Architecture Tier</span>
+                  <span className="text-xs text-slate-400">• Level {farmHierarchyLevels[activeFarmLevel].step} of 06</span>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold">
-                  {farmHierarchyLevels[activeFarmStage].badge}
+                  {farmHierarchyLevels[activeFarmLevel].badge}
                 </span>
               </div>
 
               <div>
                 <h3 className="text-2xl sm:text-4xl font-black text-white">
-                  {farmHierarchyLevels[activeFarmStage].title}
+                  {farmHierarchyLevels[activeFarmLevel].title}
                 </h3>
                 <p className="text-base text-amber-300 font-bold mt-1">
-                  {farmHierarchyLevels[activeFarmStage].scope}
+                  Scope: {farmHierarchyLevels[activeFarmLevel].scope}
                 </p>
               </div>
 
               <div className="bg-emerald-950/60 rounded-2xl p-5 border border-emerald-800/60">
                 <p className="text-slate-200 text-sm leading-relaxed">
-                  {farmHierarchyLevels[activeFarmStage].desc}
+                  {farmHierarchyLevels[activeFarmLevel].desc}
                 </p>
               </div>
 
@@ -1188,7 +1169,7 @@ export default function FarmerPublicLandingPage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 8. TRUST & ARCHITECTURE SECTION — ZERO FAKE STATS                        */}
+      {/* 8. TRUST & ARCHITECTURE SECTION — FACTUAL ARCHITECTURE ONLY               */}
       {/* ========================================================================= */}
       <section id="trust" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-white border-b border-stone-200">
         <div className="max-w-7xl mx-auto">
@@ -1199,10 +1180,10 @@ export default function FarmerPublicLandingPage() {
               <span>Platform Integrity</span>
             </div>
             <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-stone-900">
-              Built on Modern Security & Real Domain Verification.
+              Built on Modern Security & Verified Workflows.
             </h2>
             <p className="text-stone-600 text-base font-normal">
-              FARM SEVA operates with bank-grade encryption, zero fake claims, and verified agricultural custody protocols.
+              FARM SEVA operates with encryption, verified seller onboarding, and two-party delivery verification protocols.
             </p>
           </div>
 
@@ -1215,7 +1196,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h4 className="text-base font-black text-stone-900">Secure Farmer Accounts</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Mobile OTP authentication backed by bcrypt hashing and secure JWT session rotation for confidential farm data.
+                Mobile authentication with bcrypt password hashing and token rotation for confidential farm data.
               </p>
             </div>
 
@@ -1225,7 +1206,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h4 className="text-base font-black text-stone-900">Verified Seller Workflows</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                All pesticide and fertilizer sellers must submit state licenses and pass manual administrative compliance verification.
+                All agricultural input sellers undergo administrator review of business licenses before marketplace activation.
               </p>
             </div>
 
@@ -1235,7 +1216,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h4 className="text-base font-black text-stone-900">Structured Product Data</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Clear chemical formulations, recommended dosages, target pests, and safety withdrawal periods for every listed item.
+                Standardized product listings including technical composition, package sizing, and verified manufacturer branding.
               </p>
             </div>
 
@@ -1243,9 +1224,9 @@ export default function FarmerPublicLandingPage() {
               <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <h4 className="text-base font-black text-stone-900">Private KYC Vault</h4>
+              <h4 className="text-base font-black text-stone-900">Private Document Vault</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Sensitive identity and license documents are isolated in private cloud storage accessible only via time-limited signed URLs.
+                Sensitive KYC and seller documents are stored in private cloud storage accessible only via time-limited signed URLs.
               </p>
             </div>
 
@@ -1255,7 +1236,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h4 className="text-base font-black text-stone-900">Secure Payments Architecture</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Server-side HMAC signature verification and idempotent webhooks ensure tamper-proof online transactions and verified COD.
+                Server-side signature verification and idempotent webhook handlers ensure tamper-proof payment processing.
               </p>
             </div>
 
@@ -1265,7 +1246,7 @@ export default function FarmerPublicLandingPage() {
               </div>
               <h4 className="text-base font-black text-stone-900">Delivery Verification Protocol</h4>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Two-party one-time password protocol hashed with bcrypt ensures products are only marked delivered upon verified farmer receipt.
+                Two-party one-time password protocol hashed with bcrypt ensures orders are confirmed upon farmer physical receipt.
               </p>
             </div>
 
@@ -1291,11 +1272,11 @@ export default function FarmerPublicLandingPage() {
                 <span className="font-black text-xl text-white tracking-tight">FARM SEVA</span>
               </div>
               <p className="text-xs text-stone-400 leading-relaxed max-w-sm">
-                Next-generation agricultural operating system for Indian farmers. Integrating farm parcel management, crop diagnostics, licensed agri-dealers, and accredited university extension specialists.
+                Agricultural operating platform for Indian farmers. Integrating farm parcel management, crop diagnostics, licensed agri-dealers, and expert advisory support.
               </p>
               <div className="pt-2 flex items-center gap-3 text-xs text-emerald-400 font-bold">
                 <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Central API Operational • Singapore Cloud</span>
+                <span>Central API Operational</span>
               </div>
             </div>
 
@@ -1317,7 +1298,7 @@ export default function FarmerPublicLandingPage() {
               <ul className="space-y-2 text-xs">
                 <li><a href="https://farmer.farmseva.com" className="hover:text-white transition">Farmer Web Portal</a></li>
                 <li><a href="https://seller.farmseva.com" className="hover:text-white transition">Seller Retail Console</a></li>
-                <li><a href="https://expert.farmseva.com" className="hover:text-white transition">Agronomist Workstation</a></li>
+                <li><a href="https://expert.farmseva.com" className="hover:text-white transition">Expert Workstation</a></li>
                 <li><a href="https://delivery.farmseva.com" className="hover:text-white transition">Delivery Partner App</a></li>
                 <li><a href="https://admin.farmseva.com" className="hover:text-white transition">Administrator Portal</a></li>
               </ul>
@@ -1329,9 +1310,9 @@ export default function FarmerPublicLandingPage() {
               <ul className="space-y-2 text-xs text-stone-400">
                 <li><span>Verified Dealer Licensing</span></li>
                 <li><span>Bcrypt Delivery Protocol</span></li>
-                <li><span>Private KYC Storage Vault</span></li>
+                <li><span>Private Document Storage</span></li>
                 <li><span>HMAC Payment Protection</span></li>
-                <li><span>Supabase PostgreSQL Cluster</span></li>
+                <li><span>PostgreSQL Relational DB</span></li>
               </ul>
             </div>
 

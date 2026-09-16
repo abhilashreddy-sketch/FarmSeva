@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata = {
   title: 'FARM SEVA — Smart Farming, Trusted Marketplace & Expert Support',
-  description: "India's Modern AgriTech Platform: Farm Management, AI Crop Diagnostics, Accredited Agronomists & Secured Rural Input Delivery",
+  description: "India's Modern AgriTech Platform: Farm Management, AI Crop Diagnostics, Expert Advisory & Secured Rural Input Delivery",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
