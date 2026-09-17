@@ -26,7 +26,7 @@ export class FarmerService {
     let profile = await prisma.farmerProfile.findUnique({
       where: { userId },
       include: {
-        user: { select: { id: true, phone: true, email: true, fullName: true, preferredLanguage: true, role: true } },
+        user: { select: { id: true, phone: true, email: true, fullName: true, preferredLanguage: true, role: true, profileCompleted: true } },
         farms: { include: { fields: { include: { crops: true } } } },
       },
     });
@@ -35,13 +35,62 @@ export class FarmerService {
       profile = await prisma.farmerProfile.create({
         data: { userId },
         include: {
-          user: { select: { id: true, phone: true, email: true, fullName: true, preferredLanguage: true, role: true } },
+          user: { select: { id: true, phone: true, email: true, fullName: true, preferredLanguage: true, role: true, profileCompleted: true } },
           farms: { include: { fields: { include: { crops: true } } } },
         },
       });
     }
 
     return profile;
+  }
+
+  /**
+   * Deterministic evaluation of farmer profile completion status.
+   * A farmer profile is considered complete if:
+   * 1. The farmer has created at least one farm, OR
+   * 2. The farmer has provided minimum location (district & state) AND farming details
+   *    (totalLandAcres > 0, village, primaryWaterSource, or experienceYears).
+   */
+  static async evaluateProfileCompletion(userId: string): Promise<boolean> {
+    const profile = await prisma.farmerProfile.findUnique({
+      where: { userId },
+      include: {
+        farms: { select: { id: true }, take: 1 },
+      },
+    });
+
+    if (!profile) return false;
+
+    // Condition 1: Has at least 1 farm
+    if (profile.farms && profile.farms.length > 0) {
+      return true;
+    }
+
+    // Condition 2: Minimum location and farming specifics provided
+    const hasLocation = Boolean(profile.district?.trim() && profile.state?.trim());
+    const hasFarmingDetail = Boolean(
+      (profile.totalLandAcres !== null && profile.totalLandAcres !== undefined && Number(profile.totalLandAcres) > 0) ||
+      (profile.village && profile.village.trim().length > 0) ||
+      (profile.primaryWaterSource && profile.primaryWaterSource.trim().length > 0) ||
+      (profile.experienceYears !== null && profile.experienceYears !== undefined && profile.experienceYears >= 0)
+    );
+
+    return hasLocation && hasFarmingDetail;
+  }
+
+  /**
+   * Checks and updates User.profileCompleted if completion criteria are met.
+   */
+  static async checkAndUpdateProfileCompletion(userId: string): Promise<boolean> {
+    const isComplete = await this.evaluateProfileCompletion(userId);
+    if (isComplete) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { profileCompleted: true },
+      });
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -75,9 +124,15 @@ export class FarmerService {
         ...(data.kisanCreditCardNo !== undefined && { kisanCreditCardNo: data.kisanCreditCardNo }),
       },
       include: {
-        user: { select: { id: true, phone: true, fullName: true, preferredLanguage: true } },
+        user: { select: { id: true, phone: true, fullName: true, preferredLanguage: true, profileCompleted: true } },
       },
     });
+
+    // Check and update profileCompleted status if criteria are met
+    const isComplete = await this.checkAndUpdateProfileCompletion(userId);
+    if (isComplete && updatedProfile.user) {
+      updatedProfile.user.profileCompleted = true;
+    }
 
     await logAuditEvent({
       userId,
@@ -169,6 +224,9 @@ export class FarmerService {
       entityId: farm.id,
       changesJson: { name: farm.name, area: farm.totalAreaAcres },
     });
+
+    // Creating a farm satisfies profile completion
+    await this.checkAndUpdateProfileCompletion(userId);
 
     return farm;
   }

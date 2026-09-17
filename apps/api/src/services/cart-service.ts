@@ -1,17 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { ApiError } from '../middleware/error-middleware';
+import { FarmerService } from './farmer-service';
 
 const prisma = new PrismaClient();
 
 export class CartService {
   static async getCartByFarmerUserId(userId: string) {
-    const farmer = await prisma.farmerProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!farmer) {
-      throw new ApiError('FARMER_PROFILE_NOT_FOUND', 'Farmer profile not found for this user', 404);
-    }
+    const farmer = await FarmerService.getOrCreateFarmerProfile(userId);
 
     let cart = await prisma.cart.findUnique({
       where: { farmerId: farmer.id },
@@ -123,13 +118,7 @@ export class CartService {
       quantity: number;
     }
   ) {
-    const farmer = await prisma.farmerProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!farmer) {
-      throw new ApiError('FARMER_PROFILE_NOT_FOUND', 'Farmer profile not found for this user', 404);
-    }
+    const farmer = await FarmerService.getOrCreateFarmerProfile(userId);
 
     const product = await prisma.product.findUnique({
       where: { id: params.productId },

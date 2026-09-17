@@ -3,6 +3,7 @@ import { app } from '../server';
 import { PrismaClient } from '@prisma/client';
 import { UserRole, UserStatus } from '@farm-seva/shared';
 import bcrypt from 'bcryptjs';
+import { generateAccessToken } from '../utils/auth-utils';
 
 const prisma = new PrismaClient();
 
@@ -21,17 +22,79 @@ describe('FARM SEVA Phase 3 - Farmer Profile, Farm, Field & Crop Test Suite', ()
 
   let farmBId: string;
 
-  beforeAll(async () => {
-    // Clean up test data
-    await prisma.crop.deleteMany({});
-    await prisma.farmField.deleteMany({});
-    await prisma.farm.deleteMany({});
-    await prisma.farmerProfile.deleteMany({});
-    await prisma.user.deleteMany({
-      where: { phone: { in: ['9777700001', '9777700002', '9777700003'] } },
+  async function cleanTestData() {
+    const testPhones = ['9777700001', '9777700002', '9777700003', '9777700004'];
+    const testUsers = await prisma.user.findMany({
+      where: {
+        OR: [
+          { phone: { in: testPhones } },
+          { email: 'test-google-cart@farmseva.test' },
+        ],
+      },
+      select: {
+        id: true,
+        farmerProfile: { select: { id: true } },
+        sellerProfile: { select: { id: true } },
+      },
     });
 
-    const passHash = await bcrypt.hash('TestPass123!', 12);
+    const testFarmerProfileIds = testUsers.map((u) => u.farmerProfile?.id).filter(Boolean) as string[];
+    const testSellerIds = testUsers.map((u) => u.sellerProfile?.id).filter(Boolean) as string[];
+    const testUserIds = testUsers.map((u) => u.id);
+
+    if (testFarmerProfileIds.length > 0) {
+      await prisma.crop.deleteMany({
+        where: { field: { farm: { farmerId: { in: testFarmerProfileIds } } } },
+      });
+      await prisma.farmField.deleteMany({
+        where: { farm: { farmerId: { in: testFarmerProfileIds } } },
+      });
+      await prisma.farm.deleteMany({
+        where: { farmerId: { in: testFarmerProfileIds } },
+      });
+      await prisma.cartItem.deleteMany({
+        where: { cart: { farmerId: { in: testFarmerProfileIds } } },
+      });
+      await prisma.cart.deleteMany({
+        where: { farmerId: { in: testFarmerProfileIds } },
+      });
+      await prisma.farmerProfile.deleteMany({
+        where: { id: { in: testFarmerProfileIds } },
+      });
+    }
+
+    if (testSellerIds.length > 0) {
+      await prisma.seller.deleteMany({
+        where: { id: { in: testSellerIds } },
+      });
+    }
+
+    if (testUserIds.length > 0) {
+      await prisma.auditLog.deleteMany({
+        where: { userId: { in: testUserIds } },
+      });
+      await prisma.refreshToken.deleteMany({
+        where: { userId: { in: testUserIds } },
+      });
+      await prisma.notification.deleteMany({
+        where: { userId: { in: testUserIds } },
+      });
+      await prisma.address.deleteMany({
+        where: { userId: { in: testUserIds } },
+      });
+      await prisma.user.deleteMany({
+        where: { id: { in: testUserIds } },
+      });
+    }
+  }
+
+  jest.setTimeout(90000);
+
+  beforeAll(async () => {
+    // Clean up ONLY test data
+    await cleanTestData();
+
+    const passHash = await bcrypt.hash('TestPass123!', 10);
 
     // Create Farmer A
     const userA = await prisma.user.create({
@@ -84,6 +147,7 @@ describe('FARM SEVA Phase 3 - Farmer Profile, Farm, Field & Crop Test Suite', ()
   });
 
   afterAll(async () => {
+    await cleanTestData();
     await prisma.$disconnect();
   });
 
@@ -96,6 +160,7 @@ describe('FARM SEVA Phase 3 - Farmer Profile, Farm, Field & Crop Test Suite', ()
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.userId).toBe(farmerAUserId);
+    expect(res.body.data.user.profileCompleted).toBe(false);
   });
 
   // 2. UPDATE FARMER PROFILE
@@ -115,6 +180,7 @@ describe('FARM SEVA Phase 3 - Farmer Profile, Farm, Field & Crop Test Suite', ()
     expect(res.status).toBe(200);
     expect(res.body.data.village).toBe('Kaza Village');
     expect(Number(res.body.data.totalLandAcres)).toBe(8.5);
+    expect(res.body.data.user.profileCompleted).toBe(true);
   });
 
   // 3. CREATE FARM (FARMER A)
@@ -296,5 +362,53 @@ describe('FARM SEVA Phase 3 - Farmer Profile, Farm, Field & Crop Test Suite', ()
       .set('Authorization', `Bearer ${farmerAToken}`);
 
     expect(res.status).toBe(200);
+  });
+
+  // 16. DEFENSIVE CART AUTO-PROVISIONING (FARMER A)
+  test('16. Farmer A views Cart and receives valid empty cart structure', async () => {
+    const res = await request(app)
+      .get('/api/v1/cart')
+      .set('Authorization', `Bearer ${farmerAToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.cartId).toBeDefined();
+    expect(Array.isArray(res.body.data.items)).toBe(true);
+    expect(res.body.data.summary.totalItemsCount).toBe(0);
+  });
+
+  // 17. DEFENSIVE CART AUTO-PROVISIONING FOR USER WITHOUT FARMER PROFILE
+  test('17. User without pre-existing FarmerProfile views Cart and gets auto-provisioned profile without 404', async () => {
+    // Create a user without a FarmerProfile
+    const orphanUser = await prisma.user.create({
+      data: {
+        email: 'test-google-cart@farmseva.test',
+        fullName: 'Google User No Profile',
+        role: UserRole.FARMER,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    const token = generateAccessToken({
+      userId: orphanUser.id,
+      role: UserRole.FARMER,
+      status: UserStatus.ACTIVE,
+    });
+
+    const res = await request(app)
+      .get('/api/v1/cart')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.cartId).toBeDefined();
+    expect(res.body.data.farmerId).toBeDefined();
+
+    // Verify FarmerProfile was auto-created defensively
+    const profile = await prisma.farmerProfile.findUnique({
+      where: { userId: orphanUser.id },
+    });
+    expect(profile).not.toBeNull();
+    expect(profile!.id).toBe(res.body.data.farmerId);
   });
 });
