@@ -29,5 +29,8 @@ router.post('/reset-password', AuthController.resetPassword);
 router.post('/logout', authenticateToken, AuthController.logout);
 router.post('/verify-email', authenticateToken, AuthController.verifyEmail);
 router.get('/me', authenticateToken, AuthController.getMe);
+router.post('/link-phone/otp', authenticateToken, AuthController.sendPhoneLinkOtp);
+router.post('/link-phone', authenticateToken, AuthController.linkPhone);
+router.post('/set-password', authenticateToken, AuthController.setPassword);
 
 export default router;

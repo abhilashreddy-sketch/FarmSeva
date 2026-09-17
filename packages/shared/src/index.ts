@@ -81,3 +81,32 @@ export interface NotificationTemplatePayload {
   channels?: NotificationChannel[];
 }
 
+/**
+ * Centralized Indian phone normalization for canonical 10-digit format.
+ */
+export function normalizeIndianPhone(input: string): string {
+  if (!input || typeof input !== 'string') {
+    throw new Error('Please enter a valid 10-digit Indian mobile number');
+  }
+  const cleaned = input.trim().replace(/[\s\-\(\)\+]/g, '');
+  let tenDigit = cleaned;
+  if (cleaned.startsWith('91') && cleaned.length === 12) {
+    tenDigit = cleaned.slice(2);
+  } else if (cleaned.startsWith('0') && cleaned.length === 11) {
+    tenDigit = cleaned.slice(1);
+  }
+  if (!/^[6-9]\d{9}$/.test(tenDigit)) {
+    throw new Error('Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9');
+  }
+  return tenDigit;
+}
+
+/**
+ * Centralized email normalization.
+ */
+export function normalizeEmail(input?: string | null): string | null {
+  if (!input || typeof input !== 'string') return null;
+  const trimmed = input.trim().toLowerCase();
+  return trimmed.length > 0 ? trimmed : null;
+}
+

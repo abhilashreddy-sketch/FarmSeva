@@ -10,6 +10,9 @@ import {
   refreshTokenSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  requestPhoneLinkOtpSchema,
+  linkPhoneSchema,
+  setPasswordSchema,
 } from '../validations/auth-validation';
 
 export class AuthController {
@@ -322,6 +325,54 @@ export class AuthController {
         req.headers['user-agent']
       );
 
+      return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async sendPhoneLinkOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        return sendError(res, 'AUTH_UNAUTHORIZED', 'Authentication required to link phone', 401);
+      }
+      const { phone } = requestPhoneLinkOtpSchema.parse(req.body);
+      const result = await AuthService.sendPhoneLinkOtp(userId, phone);
+      return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async linkPhone(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        return sendError(res, 'AUTH_UNAUTHORIZED', 'Authentication required to link phone', 401);
+      }
+      // If client submits phone without otp, trigger OTP dispatch
+      if (req.body.phone && !req.body.otp) {
+        const { phone } = requestPhoneLinkOtpSchema.parse(req.body);
+        const result = await AuthService.sendPhoneLinkOtp(userId, phone);
+        return sendSuccess(res, result, 200);
+      }
+      const { phone, otp } = linkPhoneSchema.parse(req.body);
+      const user = await AuthService.linkPhone(userId, phone, otp);
+      return sendSuccess(res, { user, message: 'Phone number linked and verified successfully' }, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async setPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
+        return sendError(res, 'AUTH_UNAUTHORIZED', 'Authentication required to set password', 401);
+      }
+      const { password } = setPasswordSchema.parse(req.body);
+      const result = await AuthService.setPassword(userId, password);
       return sendSuccess(res, result, 200);
     } catch (error) {
       next(error);

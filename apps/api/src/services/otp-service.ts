@@ -5,6 +5,8 @@ import { ApiError } from '../middleware/error-middleware';
 import { Logger } from '../utils/logger';
 import { SmsProviderAdapter } from '../adapters/sms-provider-adapter';
 
+import { normalizeIndianPhone, normalizeEmail } from '../utils/identity-utils';
+
 const prisma = new PrismaClient();
 
 export class OtpService {
@@ -12,13 +14,7 @@ export class OtpService {
    * Validates Indian mobile phone numbers (10 digits starting with 6-9, optional +91 prefix).
    */
   static validateIndianPhone(phone: string): string {
-    const cleaned = phone.replace(/[\s\-\(\)\+]/g, '');
-    const tenDigit = cleaned.startsWith('91') && cleaned.length === 12 ? cleaned.slice(2) : cleaned;
-
-    if (!/^[6-9]\d{9}$/.test(tenDigit)) {
-      throw new ApiError('INVALID_PHONE', 'Please enter a valid 10-digit Indian mobile number', 400);
-    }
-    return tenDigit;
+    return normalizeIndianPhone(phone);
   }
 
   /**
@@ -31,9 +27,9 @@ export class OtpService {
     
     let cleanIdentifier: string;
     if (isEmail) {
-      cleanIdentifier = rawIdentifier.toLowerCase();
+      cleanIdentifier = normalizeEmail(rawIdentifier) || rawIdentifier.toLowerCase();
     } else {
-      cleanIdentifier = this.validateIndianPhone(rawIdentifier);
+      cleanIdentifier = normalizeIndianPhone(rawIdentifier);
     }
 
     // Check for recent OTP within last 60 seconds (cooldown)
@@ -96,9 +92,9 @@ export class OtpService {
 
     let cleanIdentifier: string;
     if (isEmail) {
-      cleanIdentifier = rawIdentifier.toLowerCase();
+      cleanIdentifier = normalizeEmail(rawIdentifier) || rawIdentifier.toLowerCase();
     } else {
-      cleanIdentifier = this.validateIndianPhone(rawIdentifier);
+      cleanIdentifier = normalizeIndianPhone(rawIdentifier);
     }
 
     const activeOtpRecord = await prisma.otpRecord.findFirst({

@@ -3,6 +3,7 @@ import { app } from '../server';
 import { PrismaClient } from '@prisma/client';
 import { UserRole, UserStatus } from '@farm-seva/shared';
 import bcrypt from 'bcryptjs';
+import { hashToken } from '../utils/auth-utils';
 
 const prisma = new PrismaClient();
 
@@ -381,6 +382,22 @@ describe('FARM SEVA Authentication & RBAC Test Suite', () => {
     });
     expect(invalidResetRes.status).toBe(400);
     expect(invalidResetRes.body.error.code).toBe('AUTH_INVALID_RESET_TOKEN');
+
+    // Create a valid reset token for testing reset-password completion
+    const validRawToken = 'valid_test_reset_token_12345';
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: farmerUserId,
+        tokenHash: hashToken(validRawToken),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    const validResetRes = await request(app).post('/api/v1/auth/reset-password').send({
+      token: validRawToken,
+      newPassword: 'NewFarmerPassword123!',
+    });
+    expect(validResetRes.status).toBe(200);
 
     // Reactivate farmer for subsequent login test
     await prisma.user.update({ where: { id: farmerUserId }, data: { status: 'ACTIVE' } });

@@ -8,6 +8,11 @@ import {
   hashToken,
 } from '../utils/auth-utils';
 import { logAuditEvent } from '../utils/audit-logger';
+import {
+  normalizeIndianPhone,
+  normalizeEmail,
+  normalizeLoginIdentifier,
+} from '../utils/identity-utils';
 
 const prisma = new PrismaClient();
 
@@ -25,13 +30,18 @@ export class AuthService {
     totalLandAcres?: number;
     primaryWaterSource?: string;
   }) {
-    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    const phone = normalizeIndianPhone(data.phone);
+    const email = normalizeEmail(data.email);
+
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
     if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
     }
 
-    if (data.email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
       if (existingEmail) {
         throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
       }
@@ -41,10 +51,10 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        phone: data.phone,
-        email: data.email || null,
+        phone,
+        email,
         passwordHash,
-        fullName: data.fullName,
+        fullName: data.fullName.trim(),
         role: UserRole.FARMER,
         status: UserStatus.ACTIVE,
         preferredLanguage: data.preferredLanguage || 'en',
@@ -92,13 +102,19 @@ export class AuthService {
     pincode: string;
     contactPhone: string;
   }) {
-    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    const phone = normalizeIndianPhone(data.phone);
+    const email = normalizeEmail(data.email);
+    const contactPhone = normalizeIndianPhone(data.contactPhone);
+
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
     if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
     }
 
-    if (data.email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
       if (existingEmail) {
         throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
       }
@@ -108,29 +124,29 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        phone: data.phone,
-        email: data.email || null,
+        phone,
+        email,
         passwordHash,
-        fullName: data.fullName,
+        fullName: data.fullName.trim(),
         role: UserRole.SELLER,
         status: UserStatus.PENDING_VERIFICATION,
         preferredLanguage: data.preferredLanguage || 'en',
         sellerProfile: {
           create: {
-            businessName: data.businessName,
-            pesticideLicenseNo: data.pesticideLicenseNo,
-            fertilizerLicenseNo: data.fertilizerLicenseNo || null,
+            businessName: data.businessName.trim(),
+            pesticideLicenseNo: data.pesticideLicenseNo.trim(),
+            fertilizerLicenseNo: data.fertilizerLicenseNo?.trim() || null,
             verificationStatus: 'SUBMITTED',
             shops: {
               create: {
-                shopName: data.shopName,
-                addressLine: data.addressLine,
-                villageLandmark: data.villageLandmark || null,
-                taluk: data.taluk,
-                district: data.district,
-                state: data.state,
-                pincode: data.pincode,
-                contactPhone: data.contactPhone,
+                shopName: data.shopName.trim(),
+                addressLine: data.addressLine.trim(),
+                villageLandmark: data.villageLandmark?.trim() || null,
+                taluk: data.taluk.trim(),
+                district: data.district.trim(),
+                state: data.state.trim(),
+                pincode: data.pincode.trim(),
+                contactPhone,
               },
             },
           },
@@ -165,13 +181,18 @@ export class AuthService {
     certificationNo?: string;
     yearsExperience: number;
   }) {
-    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    const phone = normalizeIndianPhone(data.phone);
+    const email = normalizeEmail(data.email);
+
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
     if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
     }
 
-    if (data.email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
       if (existingEmail) {
         throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
       }
@@ -181,18 +202,18 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        phone: data.phone,
-        email: data.email || null,
+        phone,
+        email,
         passwordHash,
-        fullName: data.fullName,
+        fullName: data.fullName.trim(),
         role: UserRole.AGRICULTURAL_EXPERT,
         status: UserStatus.PENDING_VERIFICATION,
         preferredLanguage: data.preferredLanguage || 'en',
         expertProfile: {
           create: {
-            specialization: data.specialization,
-            qualification: data.qualification,
-            certificationNo: data.certificationNo || null,
+            specialization: data.specialization.trim(),
+            qualification: data.qualification.trim(),
+            certificationNo: data.certificationNo?.trim() || null,
             yearsExperience: data.yearsExperience,
           },
         },
@@ -225,13 +246,18 @@ export class AuthService {
     vehicleNumber: string;
     activeDistrict: string;
   }) {
-    const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+    const phone = normalizeIndianPhone(data.phone);
+    const email = normalizeEmail(data.email);
+
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
     if (existingPhone) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
     }
 
-    if (data.email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
       if (existingEmail) {
         throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
       }
@@ -241,18 +267,18 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        phone: data.phone,
-        email: data.email || null,
+        phone,
+        email,
         passwordHash,
-        fullName: data.fullName,
+        fullName: data.fullName.trim(),
         role: UserRole.DELIVERY_PARTNER,
         status: UserStatus.ACTIVE,
         preferredLanguage: data.preferredLanguage || 'en',
         deliveryProfile: {
           create: {
-            vehicleType: data.vehicleType,
-            vehicleNumber: data.vehicleNumber,
-            activeDistrict: data.activeDistrict,
+            vehicleType: data.vehicleType.trim(),
+            vehicleNumber: data.vehicleNumber.trim(),
+            activeDistrict: data.activeDistrict.trim(),
           },
         },
       },
@@ -285,26 +311,38 @@ export class AuthService {
       deskPhone?: string;
     }
   ) {
-    const existingUser = await prisma.user.findUnique({ where: { phone: data.phone } });
+    const phone = normalizeIndianPhone(data.phone);
+    const email = normalizeEmail(data.email);
+
+    const existingUser = await prisma.user.findUnique({ where: { phone } });
     if (existingUser) {
       throw { statusCode: 409, code: 'AUTH_PHONE_EXISTS', message: 'Phone number already registered' };
+    }
+
+    if (email) {
+      const existingEmail = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+      });
+      if (existingEmail) {
+        throw { statusCode: 409, code: 'AUTH_EMAIL_EXISTS', message: 'Email address already registered' };
+      }
     }
 
     const passwordHash = await hashPassword(data.password);
 
     const user = await prisma.user.create({
       data: {
-        phone: data.phone,
-        email: data.email || null,
+        phone,
+        email,
         passwordHash,
-        fullName: data.fullName,
+        fullName: data.fullName.trim(),
         role: UserRole.CALL_CENTER_AGENT,
         status: UserStatus.ACTIVE,
         callCenterProfile: {
           create: {
-            agentCode: data.agentCode,
-            department: data.department || 'FARMER_SUPPORT',
-            deskPhone: data.deskPhone || null,
+            agentCode: data.agentCode.trim(),
+            department: data.department?.trim() || 'FARMER_SUPPORT',
+            deskPhone: data.deskPhone?.trim() || null,
           },
         },
       },
@@ -323,12 +361,37 @@ export class AuthService {
   }
 
   /**
-   * User Login Service.
+   * User Login Service with canonical identifier normalization.
    */
-  static async login(phone: string, password: string, ipAddress?: string, userAgent?: string) {
+  static async login(identifier: string, password: string, ipAddress?: string, userAgent?: string) {
+    let normalizedPhone: string | null = null;
+    let normalizedEmail: string | null = null;
+
+    const trimmed = identifier.trim();
+    if (trimmed.includes('@')) {
+      normalizedEmail = normalizeEmail(trimmed);
+    } else {
+      try {
+        normalizedPhone = normalizeIndianPhone(trimmed);
+      } catch {
+        normalizedPhone = trimmed;
+      }
+    }
+
+    const whereOr: any[] = [];
+    if (normalizedPhone) {
+      whereOr.push({ phone: normalizedPhone });
+    }
+    if (normalizedEmail) {
+      whereOr.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
+    }
+    if (whereOr.length === 0) {
+      whereOr.push({ phone: trimmed }, { email: { equals: trimmed, mode: 'insensitive' } });
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ phone }, { email: phone }],
+        OR: whereOr,
       },
       include: {
         farmerProfile: true,
@@ -344,7 +407,7 @@ export class AuthService {
         action: 'LOGIN_FAILED_INVALID_CREDENTIALS',
         entityName: 'User',
         entityId: 'UNKNOWN',
-        changesJson: { attemptedIdentifier: phone },
+        changesJson: { attemptedIdentifier: identifier },
         ipAddress,
         userAgent,
       });
@@ -383,7 +446,7 @@ export class AuthService {
     // Generate JWT Access Token
     const accessToken = generateAccessToken({
       userId: user.id,
-      phone: user.phone,
+      phone: user.phone || '',
       role: user.role,
       status: user.status,
     });
@@ -457,7 +520,14 @@ export class AuthService {
       };
     }
 
-    const email = googlePayload.email.toLowerCase().trim();
+    const email = normalizeEmail(googlePayload.email);
+    if (!email) {
+      throw {
+        statusCode: 400,
+        code: 'AUTH_MISSING_EMAIL',
+        message: 'Google account does not have a valid email address.',
+      };
+    }
 
     // Check if user already exists by googleId
     let user = await prisma.user.findFirst({
@@ -471,10 +541,12 @@ export class AuthService {
       },
     });
 
-    // CASE 2: If not found by googleId, check if existing user has the same verified email
+    // CASE 2: If not found by googleId, check if existing user has the same verified email (case-insensitive)
     if (!user) {
       user = await prisma.user.findFirst({
-        where: { email },
+        where: {
+          email: { equals: email, mode: 'insensitive' },
+        },
         include: {
           farmerProfile: true,
           sellerProfile: true,
@@ -485,11 +557,12 @@ export class AuthService {
       });
 
       if (user) {
-        // Link existing account with Google identity
+        // Link existing account with Google identity and normalize email in DB
         user = await prisma.user.update({
           where: { id: user.id },
           data: {
             googleId: googlePayload.googleId,
+            email,
             emailVerified: true,
             avatarUrl: user.avatarUrl || googlePayload.avatarUrl || null,
           },
@@ -514,11 +587,11 @@ export class AuthService {
       }
     }
 
-    // CASE 1: New Google user -> create FARM SEVA account
+    // CASE 1: New Google user -> create canonical FARM SEVA account
     if (!user) {
       user = await prisma.user.create({
         data: {
-          fullName: googlePayload.fullName,
+          fullName: googlePayload.fullName.trim(),
           email,
           googleId: googlePayload.googleId,
           authProvider: 'GOOGLE',
@@ -615,12 +688,38 @@ export class AuthService {
   }
 
   /**
-   * User Login with OTP Service.
+   * User Login with OTP Service (with canonical identifier normalization).
    */
   static async loginWithOtp(identifier: string, otp: string, ipAddress?: string, userAgent?: string) {
+    let normalizedPhone: string | null = null;
+    let normalizedEmail: string | null = null;
+
+    const trimmed = identifier.trim();
+    if (trimmed.includes('@')) {
+      normalizedEmail = normalizeEmail(trimmed);
+    } else {
+      try {
+        normalizedPhone = normalizeIndianPhone(trimmed);
+      } catch {
+        normalizedPhone = trimmed;
+      }
+    }
+
+    // Verify OTP first using OtpService.verifyOtp
+    const activeIdentifier = normalizedEmail || normalizedPhone || trimmed;
+    const { OtpService } = await import('./otp-service');
+    await OtpService.verifyOtp(activeIdentifier, otp, 'LOGIN');
+
+    const whereOr: any[] = [];
+    if (normalizedPhone) whereOr.push({ phone: normalizedPhone });
+    if (normalizedEmail) whereOr.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
+    if (whereOr.length === 0) {
+      whereOr.push({ phone: trimmed }, { email: { equals: trimmed, mode: 'insensitive' } });
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ phone: identifier }, { email: identifier }],
+        OR: whereOr,
       },
       include: {
         farmerProfile: true,
@@ -646,7 +745,7 @@ export class AuthService {
     // Generate JWT Access Token
     const accessToken = generateAccessToken({
       userId: user.id,
-      phone: user.phone,
+      phone: user.phone || '',
       role: user.role,
       status: user.status,
     });
@@ -684,6 +783,138 @@ export class AuthService {
       user: userWithoutPassword,
       accessToken,
       refreshToken: rawRefreshToken,
+    };
+  }
+
+  /**
+   * Request OTP to link a new phone number to an authenticated user account.
+   */
+  static async sendPhoneLinkOtp(userId: string, rawPhone: string) {
+    const phone = normalizeIndianPhone(rawPhone);
+
+    const currentUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!currentUser) {
+      throw { statusCode: 404, code: 'USER_NOT_FOUND', message: 'User not found' };
+    }
+
+    if (currentUser.phone === phone && currentUser.phoneVerified) {
+      return { message: 'Phone number is already verified and linked to this account.' };
+    }
+
+    // Check if phone belongs to another user
+    const existingOtherUser = await prisma.user.findUnique({ where: { phone } });
+    if (existingOtherUser && existingOtherUser.id !== userId) {
+      throw {
+        statusCode: 409,
+        code: 'PHONE_ALREADY_LINKED',
+        message: 'This phone number is already associated with another account. Automatic merging is disabled to protect your data.',
+      };
+    }
+
+    const { OtpService } = await import('./otp-service');
+    const result = await OtpService.sendOtp(phone, 'PHONE_LINK', userId);
+
+    return {
+      message: `OTP sent successfully to ${phone}`,
+      expiresInSeconds: result.expiresInSeconds,
+    };
+  }
+
+  /**
+   * Complete phone linking with verified OTP.
+   */
+  static async linkPhone(userId: string, rawPhone: string, rawOtp: string) {
+    const phone = normalizeIndianPhone(rawPhone);
+
+    const currentUser = await prisma.user.findUnique({ where: { id: userId } });
+    if (!currentUser) {
+      throw { statusCode: 404, code: 'USER_NOT_FOUND', message: 'User not found' };
+    }
+
+    // Collision check: if phone belongs to another account, strictly abort with 409
+    const existingOtherUser = await prisma.user.findUnique({ where: { phone } });
+    if (existingOtherUser && existingOtherUser.id !== userId) {
+      throw {
+        statusCode: 409,
+        code: 'PHONE_ALREADY_LINKED',
+        message: 'This phone number is already associated with another account. Automatic merging is disabled to protect your data.',
+      };
+    }
+
+    // Verify OTP
+    const { OtpService } = await import('./otp-service');
+    await OtpService.verifyOtp(phone, rawOtp, 'PHONE_LINK');
+
+    // Attach phone and mark verified
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone,
+        phoneVerified: true,
+      },
+      include: {
+        farmerProfile: true,
+        sellerProfile: true,
+        expertProfile: true,
+        deliveryProfile: true,
+        callCenterProfile: true,
+      },
+    });
+
+    await logAuditEvent({
+      userId,
+      action: 'PHONE_LINKED_SUCCESS',
+      entityName: 'User',
+      entityId: userId,
+      changesJson: { phone },
+    });
+
+    const { passwordHash: _, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
+  /**
+   * Set/establish password for authenticated users who do not have one (e.g. Google-only users).
+   */
+  static async setPassword(userId: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw { statusCode: 404, code: 'USER_NOT_FOUND', message: 'User not found' };
+    }
+
+    if (user.passwordHash) {
+      throw {
+        statusCode: 400,
+        code: 'PASSWORD_ALREADY_SET',
+        message: 'A password is already set for this account. Use the change password or reset password flow instead.',
+      };
+    }
+
+    if (!newPassword || newPassword.length < 8 || !/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      throw {
+        statusCode: 400,
+        code: 'WEAK_PASSWORD',
+        message: 'Password must be at least 8 characters long and contain at least one letter and one number.',
+      };
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    await logAuditEvent({
+      userId,
+      action: 'PASSWORD_ESTABLISHED_SUCCESS',
+      entityName: 'User',
+      entityId: userId,
+    });
+
+    return {
+      success: true,
+      message: 'Password established successfully. You can now log in using either your Google account or your credentials.',
     };
   }
 
