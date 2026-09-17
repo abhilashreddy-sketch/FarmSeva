@@ -2,11 +2,14 @@
  * FARM SEVA Portal Routing & Destination Configuration
  * 
  * Provides centralized environment-aware URLs for all 5 FARM SEVA role applications.
- * Handles both local development ports and production domains.
+ * In development, provides localhost fallbacks.
+ * In production, strictly requires NEXT_PUBLIC_*_URL environment variables.
+ * Does NOT hardcode non-existent production domains or silently redirect to localhost in production.
  */
 
 export interface PortalDestination {
   role: 'FARMER' | 'SELLER' | 'AGRICULTURAL_EXPERT' | 'DELIVERY_PARTNER' | 'ADMIN';
+  envVar: string;
   name: string;
   badge: string;
   tagline: string;
@@ -24,6 +27,7 @@ export interface PortalDestination {
 export const PORTAL_DEFINITIONS: PortalDestination[] = [
   {
     role: 'FARMER',
+    envVar: 'N/A (Current Application)',
     name: 'FARMER',
     badge: 'Cultivation & Market',
     tagline: 'Farm Management & Agri-Inputs',
@@ -39,6 +43,7 @@ export const PORTAL_DEFINITIONS: PortalDestination[] = [
   },
   {
     role: 'SELLER',
+    envVar: 'NEXT_PUBLIC_SELLER_URL',
     name: 'SELLER',
     badge: 'Merchant Console',
     tagline: 'Agricultural Input Retail',
@@ -54,6 +59,7 @@ export const PORTAL_DEFINITIONS: PortalDestination[] = [
   },
   {
     role: 'AGRICULTURAL_EXPERT',
+    envVar: 'NEXT_PUBLIC_EXPERT_URL',
     name: 'AGRICULTURAL EXPERT',
     badge: 'Agronomy Workstation',
     tagline: 'Pathology & Scientific Guidance',
@@ -69,6 +75,7 @@ export const PORTAL_DEFINITIONS: PortalDestination[] = [
   },
   {
     role: 'DELIVERY_PARTNER',
+    envVar: 'NEXT_PUBLIC_DELIVERY_URL',
     name: 'DELIVERY PARTNER',
     badge: 'Fulfillment Logistics',
     tagline: 'Last-Mile Transport & Dispatch',
@@ -84,6 +91,7 @@ export const PORTAL_DEFINITIONS: PortalDestination[] = [
   },
   {
     role: 'ADMIN',
+    envVar: 'NEXT_PUBLIC_ADMIN_URL',
     name: 'ADMIN / OPERATIONS',
     badge: 'Platform Operations',
     tagline: 'Governance, KYC & Marketplace',
@@ -100,36 +108,71 @@ export const PORTAL_DEFINITIONS: PortalDestination[] = [
 ];
 
 /**
- * Resolves the base URL for a given portal based on environment and hosting setup.
+ * Determines whether the current runtime environment is explicitly local development.
+ * In production builds, this returns false so production users are never redirected to localhost.
  */
-export function getPortalBaseUrl(role: PortalDestination['role']): string {
-  const isBrowser = typeof window !== 'undefined';
-  const isLocalhost = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+export function isLocalDevelopment(): boolean {
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalhostHost = hostname === 'localhost' || hostname === '127.0.0.1';
+    // Only allow localhost fallback if NOT running in production mode
+    if (process.env.NODE_ENV !== 'production' && isLocalhostHost) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolves the base URL for a given portal.
+ * Returns the configured environment variable if set.
+ * Falls back to localhost ONLY in explicit local development.
+ * In production without environment variables, returns null (NOT localhost, NOT fake domains).
+ */
+export function getPortalBaseUrl(role: PortalDestination['role']): string | null {
+  if (role === 'FARMER') {
+    // Farmer portal is embedded in the current farmer-web Next.js app
+    return '';
+  }
+
+  const isDev = isLocalDevelopment();
 
   switch (role) {
-    case 'FARMER':
-      // Farmer portal is embedded in the current farmer-web application
-      return '';
     case 'SELLER':
-      return process.env.NEXT_PUBLIC_SELLER_URL || (isLocalhost ? 'http://localhost:3001' : 'https://seller.farmseva.com');
+      return process.env.NEXT_PUBLIC_SELLER_URL || (isDev ? 'http://localhost:3001' : null);
     case 'AGRICULTURAL_EXPERT':
-      return process.env.NEXT_PUBLIC_EXPERT_URL || (isLocalhost ? 'http://localhost:3002' : 'https://expert.farmseva.com');
+      return process.env.NEXT_PUBLIC_EXPERT_URL || (isDev ? 'http://localhost:3002' : null);
     case 'DELIVERY_PARTNER':
-      return process.env.NEXT_PUBLIC_DELIVERY_URL || (isLocalhost ? 'http://localhost:3003' : 'https://delivery.farmseva.com');
+      return process.env.NEXT_PUBLIC_DELIVERY_URL || (isDev ? 'http://localhost:3003' : null);
     case 'ADMIN':
-      return process.env.NEXT_PUBLIC_ADMIN_URL || (isLocalhost ? 'http://localhost:3004' : 'https://admin.farmseva.com');
+      return process.env.NEXT_PUBLIC_ADMIN_URL || (isDev ? 'http://localhost:3004' : null);
   }
 }
 
 /**
- * Builds the complete destination launch URL, appending session token for cross-origin SSO handoff.
+ * Checks if the target portal URL is configured and available to launch.
  */
-export function buildPortalLaunchUrl(role: PortalDestination['role'], token?: string | null): string {
+export function isPortalConfigured(role: PortalDestination['role']): boolean {
+  if (role === 'FARMER') return true;
+  return Boolean(getPortalBaseUrl(role));
+}
+
+/**
+ * Builds the complete destination launch URL, or returns null if not configured in production.
+ */
+export function buildPortalLaunchUrl(role: PortalDestination['role'], token?: string | null): string | null {
   if (role === 'FARMER') {
     return '/dashboard';
   }
 
   const base = getPortalBaseUrl(role);
+  if (!base) {
+    return null;
+  }
+
   const target = `${base}/dashboard`;
   if (token) {
     return `${target}?token=${encodeURIComponent(token)}`;

@@ -54,12 +54,14 @@ export default function LoginPage() {
         } else if (userRole === 'ADMIN') {
           // Administrators can manage the full platform or visit any portal
           router.push('/portal');
-        } else if (userRole === 'SELLER') {
-          window.location.href = buildPortalLaunchUrl('SELLER', token);
-        } else if (userRole === 'AGRICULTURAL_EXPERT') {
-          window.location.href = buildPortalLaunchUrl('AGRICULTURAL_EXPERT', token);
-        } else if (userRole === 'DELIVERY_PARTNER') {
-          window.location.href = buildPortalLaunchUrl('DELIVERY_PARTNER', token);
+        } else if (userRole && ['SELLER', 'AGRICULTURAL_EXPERT', 'DELIVERY_PARTNER'].includes(userRole)) {
+          const launchUrl = buildPortalLaunchUrl(userRole, token);
+          if (launchUrl) {
+            window.location.href = launchUrl;
+          } else {
+            // Target portal URL is not yet configured in production; route safely to /portal where status is shown
+            router.push('/portal');
+          }
         } else {
           router.push('/portal');
         }

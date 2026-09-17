@@ -14,7 +14,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { getAuthToken, removeAuthToken } from '../../lib/api-client';
-import { PORTAL_DEFINITIONS, buildPortalLaunchUrl, PortalDestination } from '../../config/portal';
+import { PORTAL_DEFINITIONS, buildPortalLaunchUrl, isPortalConfigured, PortalDestination } from '../../config/portal';
 
 export default function PortalSelectionPage() {
   const router = useRouter();
@@ -56,6 +56,10 @@ export default function PortalSelectionPage() {
 
   const handlePortalLaunch = (dest: PortalDestination) => {
     const url = buildPortalLaunchUrl(dest.role, token);
+    if (!url) {
+      alert(`The portal URL for ${dest.name} is not configured yet in this environment (${dest.envVar}).`);
+      return;
+    }
     if (dest.role === 'FARMER') {
       router.push(url);
     } else {
@@ -142,6 +146,7 @@ export default function PortalSelectionPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {PORTAL_DEFINITIONS.map((portal) => {
             const authorized = isRoleAuthorized(portal.role);
+            const configured = isPortalConfigured(portal.role);
             const isUserPrimaryRole = user?.role === portal.role;
             const isAdminBypass = user?.role === 'ADMIN' && portal.role !== 'ADMIN';
 
@@ -196,13 +201,29 @@ export default function PortalSelectionPage() {
                 {/* Card Action Button */}
                 <div className="pt-6 mt-6 border-t border-slate-100">
                   {authorized ? (
-                    <button
-                      onClick={() => handlePortalLaunch(portal)}
-                      className={`w-full py-3.5 px-5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${portal.theme.primary}`}
-                    >
-                      <span>Continue to {portal.role === 'ADMIN' ? 'Console' : 'Portal'}</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                    configured ? (
+                      <button
+                        onClick={() => handlePortalLaunch(portal)}
+                        className={`w-full py-3.5 px-5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${portal.theme.primary}`}
+                      >
+                        <span>Continue to {portal.role === 'ADMIN' ? 'Console' : 'Portal'}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs space-y-1">
+                        <div className="flex items-center justify-between font-bold">
+                          <span className="flex items-center gap-1.5 text-[11px] text-amber-800">
+                            <span>⚠️</span> Portal Not Configured Yet
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+                            Pending URL
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-amber-700/90 leading-tight">
+                          Live deployment URL ({portal.envVar}) is not configured in this environment.
+                        </p>
+                      </div>
+                    )
                   ) : (
                     <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-500 text-xs">
                       <div className="flex items-center gap-2">
