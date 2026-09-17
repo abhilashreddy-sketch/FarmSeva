@@ -20,7 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@farm-seva/shared": ["../../packages/shared/src/index.ts"]
+      "@farm-seva/shared": ["../../packages/shared/src/index.ts"],
+      "@farm-seva/shared-ui": ["../../packages/shared-ui/src/index.ts"],
+      "@farm-seva/shared-ui/*": ["../../packages/shared-ui/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
