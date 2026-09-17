@@ -10,9 +10,9 @@ interface AppLayoutShellProps {
 
 export function AppLayoutShell({ children }: AppLayoutShellProps) {
   const pathname = usePathname();
-  const isLandingPage = pathname === '/';
+  const isStandalonePage = pathname === '/' || pathname === '/portal';
 
-  if (isLandingPage) {
+  if (isStandalonePage) {
     return (
       <div className="flex-1 w-full min-h-screen">
         {children}

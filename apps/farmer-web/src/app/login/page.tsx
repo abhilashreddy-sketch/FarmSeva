@@ -6,8 +6,10 @@ import { Phone, Lock, LogIn, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { setAuthToken } from '../../lib/api-client';
+import { API_BASE_URL } from '../../config/api';
+import { buildPortalLaunchUrl } from '../../config/portal';
 
-export default function FarmerLoginPage() {
+export default function LoginPage() {
   const router = useRouter();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +27,7 @@ export default function FarmerLoginPage() {
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/auth/login', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier, password }),
@@ -38,13 +40,29 @@ export default function FarmerLoginPage() {
         const token = json.data?.token || json.token;
         const user = json.data?.user || json.user;
 
-        if (user && user.role !== 'FARMER' && user.role !== 'ADMIN') {
-          setError(`Access restricted. Account role '${user.role}' belongs to the ${user.role.toLowerCase()} portal.`);
-          return;
+        if (token) {
+          setAuthToken(token);
+        }
+        if (user && typeof window !== 'undefined') {
+          localStorage.setItem('farm_seva_user', JSON.stringify(user));
         }
 
-        setAuthToken(token);
-        router.push('/dashboard');
+        // Intelligent Role Routing
+        const userRole = user?.role;
+        if (userRole === 'FARMER') {
+          router.push('/dashboard');
+        } else if (userRole === 'ADMIN') {
+          // Administrators can manage the full platform or visit any portal
+          router.push('/portal');
+        } else if (userRole === 'SELLER') {
+          window.location.href = buildPortalLaunchUrl('SELLER', token);
+        } else if (userRole === 'AGRICULTURAL_EXPERT') {
+          window.location.href = buildPortalLaunchUrl('AGRICULTURAL_EXPERT', token);
+        } else if (userRole === 'DELIVERY_PARTNER') {
+          window.location.href = buildPortalLaunchUrl('DELIVERY_PARTNER', token);
+        } else {
+          router.push('/portal');
+        }
       }
     } catch (err: any) {
       setError('Unable to connect to authentication service.');
@@ -56,10 +74,10 @@ export default function FarmerLoginPage() {
   return (
     <div className="max-w-md mx-auto py-6 sm:py-12 space-y-6">
       <div className="text-center space-y-2">
-        <Badge status="active">Customer Application</Badge>
-        <h1 className="text-2xl font-black text-slate-900">Farmer Sign In</h1>
+        <Badge status="active">Unified Ecosystem Authentication</Badge>
+        <h1 className="text-2xl font-black text-slate-900">Sign In to FARM SEVA</h1>
         <p className="text-xs text-slate-500">
-          Access your agricultural orders, registered crops, and disease diagnostics.
+          Enter your credentials to access your authorized platform portal.
         </p>
       </div>
 
@@ -94,7 +112,7 @@ export default function FarmerLoginPage() {
             className="w-full bg-emerald-700 hover:bg-emerald-800"
             leftIcon={<LogIn className="w-4 h-4" />}
           >
-            Sign In to Farmer Portal
+            Sign In to FARM SEVA
           </Button>
         </form>
 

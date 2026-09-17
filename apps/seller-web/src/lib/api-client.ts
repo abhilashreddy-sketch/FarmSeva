@@ -2,6 +2,14 @@ import { API_BASE_URL } from '../config/api';
 
 export const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get('token');
+  if (urlToken) {
+    localStorage.setItem('farm_seva_token', urlToken);
+    const cleanUrl = window.location.pathname + window.location.hash;
+    window.history.replaceState({}, document.title, cleanUrl);
+    return urlToken;
+  }
   return localStorage.getItem('farm_seva_token');
 };
 
